@@ -1,0 +1,94 @@
+/**
+ * ERP specific styles — kept intentionally small; Tabler utilities do the rest.
+ */
+
+// Sidebar: keep submenu readable when collapsed on desktop
+.navbar-vertical .navbar-nav .nav-link.active {
+  font-weight: 600;
+}
+
+.navbar-vertical .dropdown-menu .dropdown-item.active,
+.navbar-vertical .dropdown-menu .dropdown-item:active {
+  background-color: rgba(var(--tblr-primary-rgb), 0.12);
+  color: var(--tblr-primary);
+}
+
+// Document line-item table
+.table-items {
+  th,
+  td {
+    vertical-align: middle;
+  }
+
+  input.form-control,
+  select.form-select {
+    min-width: 4rem;
+  }
+
+  .col-qty {
+    width: 8rem;
+  }
+  .col-price {
+    width: 11rem;
+  }
+  .col-disc {
+    width: 8rem;
+  }
+  .col-total {
+    width: 12rem;
+  }
+  .col-action {
+    width: 3rem;
+  }
+}
+
+// Numeric cells always align right and use tabular figures
+.text-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// Compact filter bar above data tables
+.filter-bar {
+  .form-control,
+  .form-select {
+    min-width: 9rem;
+  }
+}
+
+// Print (invoice / PO / DO)
+@media print {
+  .navbar,
+  .page-header .btn-list,
+  .footer,
+  .no-print {
+    display: none !important;
+  }
+
+  .page-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+// Stat cards on the dashboard
+.stat-tile {
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// Required field marker
+label.required::after {
+  content: ' *';
+  color: var(--tblr-danger);
+}

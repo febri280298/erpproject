@@ -1,0 +1,14 @@
+/**
+ * ERP Peak — Tabler based theme
+ * Template: https://github.com/tabler/tabler (@tabler/core v1.4)
+ *
+ * Icon webfont files are copied to public/fonts by `npm run copy:fonts`
+ * (see package.json), so the URL below is resolved from the web root at runtime.
+ */
+$ti-font-path: '/fonts';
+
+@import '@tabler/core/scss/tabler';
+@import '@tabler/core/scss/tabler-vendors';
+@import '@tabler/icons-webfont/dist/tabler-icons.scss';
+
+@import 'erp';

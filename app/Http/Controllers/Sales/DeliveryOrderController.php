@@ -1,0 +1,185 @@
+<?php
+
+namespace App\Http\Controllers\Sales;
+
+use App\Http\Controllers\Controller;
+use App\Models\Master\Partner;
+use App\Models\Master\Warehouse;
+use App\Models\Sales\DeliveryOrder;
+use App\Models\Sales\SalesOrder;
+use App\Services\DocumentNumberService;
+use App\Services\Posting\SalesPostingService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
+use RuntimeException;
+
+class DeliveryOrderController extends Controller
+{
+    public function __construct(
+        private readonly DocumentNumberService $numbers,
+        private readonly SalesPostingService $posting,
+    ) {}
+
+    public function index(Request $request): View
+    {
+        return view('sales.deliveries.index', [
+            'documents' => DeliveryOrder::query()
+                ->with(['customer:id,name', 'warehouse:id,name', 'salesOrder:id,so_no'])
+                ->filter($request->query())
+                ->latest('date')->latest('id')
+                ->paginate(20)
+                ->withQueryString(),
+            'customers' => Partner::customers()->orderBy('name')->pluck('name', 'id'),
+            'warehouses' => Warehouse::orderBy('name')->pluck('name', 'id'),
+        ]);
+    }
+
+    public function create(Request $request): View
+    {
+        $order = $request->filled('sales_order_id')
+            ? SalesOrder::with('items.product.uom', 'customer', 'warehouse')->find($request->query('sales_order_id'))
+            : null;
+
+        if ($order && ! $order->canDeliver()) {
+            abort(403, 'Pesanan ini tidak memiliki item yang menunggu pengiriman.');
+        }
+
+        return view('sales.deliveries.form', [
+            'order' => $order,
+            'openOrders' => SalesOrder::query()
+                ->whereIn('status', ['confirmed', 'partial'])
+                ->with('customer:id,name')
+                ->latest('date')
+                ->get(),
+            'nextNumber' => $this->numbers->peek('delivery_order'),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'sales_order_id' => ['required', 'exists:sales_orders,id'],
+            'date' => ['required', 'date'],
+            'driver_name' => ['nullable', 'string', 'max:100'],
+            'vehicle_no' => ['nullable', 'string', 'max:30'],
+            'shipping_address' => ['nullable', 'string', 'max:1000'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.sales_order_item_id' => ['required', 'exists:sales_order_items,id'],
+            'items.*.quantity' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $order = SalesOrder::with('items.product', 'customer')->findOrFail($data['sales_order_id']);
+
+        try {
+            $delivery = DB::transaction(function () use ($data, $order) {
+                $delivery = DeliveryOrder::create([
+                    'do_no' => $this->numbers->next('delivery_order', $data['date']),
+                    'date' => $data['date'],
+                    'sales_order_id' => $order->id,
+                    'partner_id' => $order->partner_id,
+                    'warehouse_id' => $order->warehouse_id,
+                    'driver_name' => $data['driver_name'] ?? null,
+                    'vehicle_no' => $data['vehicle_no'] ?? null,
+                    'shipping_address' => ($data['shipping_address'] ?? null) ?: $order->customer->address,
+                    'status' => 'draft',
+                    'notes' => $data['notes'] ?? null,
+                    'created_by' => Auth::id(),
+                ]);
+
+                $orderItems = $order->items->keyBy('id');
+                $rows = [];
+
+                foreach ($data['items'] as $row) {
+                    $quantity = round((float) $row['quantity'], 4);
+                    if ($quantity <= 0) {
+                        continue;
+                    }
+
+                    $orderItem = $orderItems->get((int) $row['sales_order_item_id']);
+                    if (! $orderItem) {
+                        continue;
+                    }
+
+                    if ($quantity > $orderItem->outstandingQty()) {
+                        throw new RuntimeException(sprintf(
+                            'Jumlah kirim untuk %s melebihi sisa pesanan (%s).',
+                            $orderItem->product?->name ?? '—',
+                            fnum($orderItem->outstandingQty())
+                        ));
+                    }
+
+                    $rows[] = [
+                        'sales_order_item_id' => $orderItem->id,
+                        'product_id' => $orderItem->product_id,
+                        'quantity' => $quantity,
+                    ];
+                }
+
+                if ($rows === []) {
+                    throw new RuntimeException('Isi minimal satu jumlah pengiriman.');
+                }
+
+                $delivery->items()->createMany($rows);
+
+                return $delivery;
+            });
+        } catch (RuntimeException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return redirect()
+            ->route('delivery-orders.show', $delivery)
+            ->with('success', "Surat jalan {$delivery->do_no} dibuat sebagai draft. Posting untuk mengurangi stok.");
+    }
+
+    public function show(DeliveryOrder $deliveryOrder): View
+    {
+        $deliveryOrder->load('items.product.uom', 'customer', 'warehouse', 'salesOrder', 'creator', 'journals');
+
+        return view('sales.deliveries.show', ['document' => $deliveryOrder]);
+    }
+
+    public function destroy(DeliveryOrder $deliveryOrder): RedirectResponse
+    {
+        abort_unless($deliveryOrder->isDraft(), 403, 'Surat jalan yang sudah diposting tidak dapat dihapus.');
+
+        $number = $deliveryOrder->do_no;
+        $deliveryOrder->delete();
+
+        return redirect()->route('delivery-orders.index')
+            ->with('success', "Surat jalan {$number} berhasil dihapus.");
+    }
+
+    public function post(DeliveryOrder $deliveryOrder): RedirectResponse
+    {
+        try {
+            $this->posting->postDelivery($deliveryOrder);
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Surat jalan {$deliveryOrder->do_no} diposting. Stok dan HPP telah dicatat.");
+    }
+
+    public function cancel(DeliveryOrder $deliveryOrder): RedirectResponse
+    {
+        try {
+            $this->posting->cancelDelivery($deliveryOrder);
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Surat jalan {$deliveryOrder->do_no} dibatalkan dan stok dikembalikan.");
+    }
+
+    public function print(DeliveryOrder $deliveryOrder): View
+    {
+        $deliveryOrder->load('items.product.uom', 'customer', 'warehouse', 'salesOrder');
+
+        return view('sales.deliveries.print', ['document' => $deliveryOrder]);
+    }
+}
