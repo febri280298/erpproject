@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\NumberSequence;
+use App\Models\Setting;
 use App\Services\AccountMap;
 use App\Services\DocumentNumberService;
 use App\Services\ModuleRegistry;
@@ -11,8 +12,22 @@ use Illuminate\Database\Seeder;
 
 class SettingSeeder extends Seeder
 {
+    /** Pengaturan pajak sesuai PMK 131/2024; dimatikan agar angka lama tidak berubah. */
+    private const TAX_DEFAULTS = [
+        'use_dpp_nilai_lain' => ['0', 'boolean'],
+        'dpp_ratio_numerator' => ['11', 'number'],
+        'dpp_ratio_denominator' => ['12', 'number'],
+    ];
+
     public function run(): void
     {
+        foreach (self::TAX_DEFAULTS as $key => [$value, $type]) {
+            Setting::firstOrCreate(
+                ['key' => $key],
+                ['group' => 'accounting', 'value' => $value, 'type' => $type],
+            );
+        }
+
         $settings = app(SettingService::class);
 
         $settings->setMany([
@@ -59,11 +74,16 @@ class SettingSeeder extends Seeder
             );
         }
 
-        // Materialise the module flags so Pengaturan → Modul shows real values.
+        // Menuliskan flag modul hanya bila belum pernah ada, supaya menjalankan
+        // ulang seeder tidak menghapus pilihan modul yang sudah diatur pengguna
+        // lewat Pengaturan → Modul.
         $modules = app(ModuleRegistry::class);
-        $modules->save(collect($modules->catalogue())
-            ->map(fn (array $meta) => $meta['default'] ?? true)
-            ->all());
+
+        if (! Setting::where('key', 'modules_enabled')->exists()) {
+            $modules->save(collect($modules->catalogue())
+                ->map(fn (array $meta) => $meta['default'] ?? true)
+                ->all());
+        }
 
         $settings->flush();
 

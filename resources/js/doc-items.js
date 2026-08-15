@@ -25,6 +25,14 @@ export default function docItems(config = {}) {
         partnerId: '',
         priceSourceLabel: '',
 
+        /** Rasio DPP Nilai Lain; 1 berarti fitur tidak aktif. */
+        dppRatio: config.dppRatio ?? 1,
+        dppRatioLabel: config.dppRatioLabel ?? '',
+
+        get usesDppOther() {
+            return this.dppRatio !== 1;
+        },
+
         get isPurchase() {
             return this.priceField === 'purchase_price';
         },
@@ -146,12 +154,23 @@ export default function docItems(config = {}) {
             return round((this.lineGross(row) * parseNum(row.discount_percent)) / 100);
         },
 
+        /** DPP baris: harga setelah diskon, belum kena pajak. */
         lineSubtotal(row) {
             return round(this.lineGross(row) - this.lineDiscount(row));
         },
 
+        /**
+         * Dasar pengenaan pajak baris. Bila DPP Nilai Lain aktif, dasarnya
+         * adalah rasio (mis. 11/12) dari DPP — baris bebas pajak tidak terpengaruh.
+         */
+        lineTaxBase(row) {
+            return parseNum(row.tax_rate) > 0
+                ? round(this.lineSubtotal(row) * this.dppRatio)
+                : this.lineSubtotal(row);
+        },
+
         lineTax(row) {
-            return round((this.lineSubtotal(row) * parseNum(row.tax_rate)) / 100);
+            return round((this.lineTaxBase(row) * parseNum(row.tax_rate)) / 100);
         },
 
         lineTotal(row) {
@@ -160,6 +179,12 @@ export default function docItems(config = {}) {
 
         get subtotal() {
             return round(this.rows.reduce((sum, r) => sum + this.lineSubtotal(r), 0));
+        },
+
+        get dppOtherTotal() {
+            return round(this.rows.reduce(
+                (sum, r) => sum + (parseNum(r.tax_rate) > 0 ? this.lineTaxBase(r) : 0), 0,
+            ));
         },
 
         get taxTotal() {

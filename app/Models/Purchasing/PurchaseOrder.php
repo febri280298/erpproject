@@ -23,7 +23,7 @@ class PurchaseOrder extends Model
     protected $fillable = [
         'po_no', 'date', 'expected_date', 'partner_id', 'warehouse_id',
         'purchase_requisition_id', 'payment_term_id', 'status',
-        'subtotal', 'discount_amount', 'shipping_cost', 'tax_amount', 'total',
+        'subtotal', 'dpp_other_amount', 'discount_amount', 'shipping_cost', 'tax_amount', 'total',
         'notes', 'terms', 'created_by', 'approved_by', 'approved_at',
     ];
 
@@ -32,6 +32,7 @@ class PurchaseOrder extends Model
         'expected_date' => 'date',
         'approved_at' => 'datetime',
         'subtotal' => 'decimal:2',
+        'dpp_other_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'tax_amount' => 'decimal:2',

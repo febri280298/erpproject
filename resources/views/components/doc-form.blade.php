@@ -29,6 +29,8 @@
           priceField: '{{ $priceField }}',
           partnerLevels: {{ Js::from($partnerLevels ?? []) }},
           defaultLevelId: {{ Js::from($defaultPriceLevelId ?? null) }},
+          dppRatio: {{ Js::from($dppRatio ?? 1) }},
+          dppRatioLabel: {{ Js::from($dppRatioLabel ?? '') }},
           discountAmount: {{ (float) old('discount_amount', $discountAmount) }},
           shippingCost: {{ (float) old('shipping_cost', $shippingCost) }}
       })"
@@ -74,7 +76,9 @@
                     @if($showPrice)<th class="col-price text-end">Harga</th>@endif
                     @if($showDiscount)<th class="col-disc text-end">Disc %</th>@endif
                     @if($showTax)<th class="col-disc text-end">Pajak %</th>@endif
-                    @if($showPrice)<th class="col-total text-end">Jumlah</th>@endif
+                    {{-- Menampilkan DPP (belum kena pajak) agar kolomnya berjumlah sama
+                         dengan Subtotal di rekap; pajak ditambahkan sekali di bawah. --}}
+                    @if($showPrice)<th class="col-total text-end">DPP</th>@endif
                     <th class="col-action"></th>
                 </tr>
                 </thead>
@@ -121,7 +125,7 @@
                             </td>
                         @endif
                         @if($showPrice)
-                            <td class="text-num" x-text="money(lineTotal(row))"></td>
+                            <td class="text-num" x-text="money(lineSubtotal(row))"></td>
                         @endif
                         <td>
                             <button type="button" class="btn btn-icon btn-ghost-danger" @click="removeRow(index)"
@@ -148,9 +152,17 @@
                         </tr>
                         @if($showPrice)
                         <tr>
-                            <td class="text-secondary">Subtotal</td>
+                            <td class="text-secondary">Subtotal (DPP)</td>
                             <td class="text-num" x-text="money(subtotal)"></td>
                         </tr>
+                        @if($showTax)
+                            <tr x-show="usesDppOther" x-cloak>
+                                <td class="text-secondary">
+                                    DPP Nilai Lain <span class="text-muted" x-text="'(' + dppRatioLabel + ')'"></span>
+                                </td>
+                                <td class="text-num" x-text="money(dppOtherTotal)"></td>
+                            </tr>
+                        @endif
                         @if($showDiscount)
                             <tr>
                                 <td class="text-secondary">Diskon Nota</td>

@@ -365,6 +365,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit')->middleware('permission:setting.view');
     Route::middleware('permission:setting.edit')->group(function () {
         Route::put('settings/modules', [SettingController::class, 'updateModules'])->name('settings.modules');
+        Route::put('settings/tax', [SettingController::class, 'updateTax'])->name('settings.tax');
         Route::put('settings/company', [SettingController::class, 'updateCompany'])->name('settings.company');
         Route::put('settings/accounting', [SettingController::class, 'updateAccounting'])->name('settings.accounting');
         Route::put('settings/operations', [SettingController::class, 'updateOperations'])->name('settings.operations');

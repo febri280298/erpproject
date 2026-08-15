@@ -161,6 +161,36 @@ HPP mengikuti **pergerakan fisik barang** (surat jalan), bukan faktur — sehing
 dan kartu stok selalu konsisten. Transfer antar gudang tidak menghasilkan jurnal karena
 nilai persediaan total tidak berubah.
 
+### PPN & DPP Nilai Lain
+
+Perhitungan pajak per baris:
+
+```
+DPP        = qty × harga × (1 − diskon%)
+Dasar PPN  = DPP × rasio          ← rasio 1 bila DPP Nilai Lain tidak aktif
+PPN        = Dasar PPN × tarif%
+Total      = Σ DPP − diskon nota + biaya kirim + Σ PPN
+```
+
+Kolom **DPP** pada tabel item menampilkan nilai *sebelum* pajak, sehingga kolomnya
+berjumlah sama dengan Subtotal di rekap — pajak ditambahkan sekali saja di bawah.
+
+**DPP Nilai Lain** (PMK 131/2024) diaktifkan di *Pengaturan → PPN & DPP Nilai Lain*.
+Sejak 2025 tarif PPN 12%, tetapi untuk barang/jasa umum dasar pengenaannya adalah
+11/12 dari harga jual — hasilnya setara 11% dari harga jual:
+
+| | Tarif | Dasar PPN | PPN atas DPP 4.316.000 |
+|---|---|---|---|
+| Tidak aktif | 11% | DPP penuh | 474.760 |
+| Aktif, rasio 11/12 | 12% | 3.956.333 | 474.760 |
+
+> Rasio disimpan sebagai **pembilang dan penyebut** (11 dan 12), bukan desimal,
+> agar 11/12 tidak kehilangan presisi dan pajaknya tidak meleset beberapa sen.
+
+Bawaannya **tidak aktif** supaya angka pada instalasi yang sudah berjalan tidak
+berubah sendiri. Saat diaktifkan, tarif pajak default harus diubah menjadi 12% —
+sistem memberi peringatan bila belum. Baris berpajak nol tidak terpengaruh rasio.
+
 ### Satu Faktur untuk Beberapa Surat Jalan
 
 Pengiriman yang dilakukan beberapa kali dapat ditagih sekaligus dalam satu faktur

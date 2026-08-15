@@ -61,12 +61,16 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
+            $calculator = $this->app->make(LineItemCalculator::class);
+
             $view->with([
                 'partnerLevels' => Partner::query()
                     ->whereNotNull('price_level_id')
                     ->pluck('price_level_id', 'id')
                     ->all(),
                 'defaultPriceLevelId' => PriceLevel::defaultId(),
+                'dppRatio' => $calculator->ratio(),
+                'dppRatioLabel' => $calculator->isDppOtherEnabled() ? $calculator->ratioLabel() : '',
             ]);
         });
     }

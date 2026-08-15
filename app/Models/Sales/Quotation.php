@@ -18,7 +18,7 @@ class Quotation extends Model
 
     protected $fillable = [
         'quotation_no', 'date', 'valid_until', 'partner_id', 'status',
-        'subtotal', 'discount_amount', 'shipping_cost', 'tax_amount', 'total',
+        'subtotal', 'dpp_other_amount', 'discount_amount', 'shipping_cost', 'tax_amount', 'total',
         'notes', 'terms', 'created_by',
     ];
 
@@ -26,6 +26,7 @@ class Quotation extends Model
         'date' => 'date',
         'valid_until' => 'date',
         'subtotal' => 'decimal:2',
+        'dpp_other_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'tax_amount' => 'decimal:2',

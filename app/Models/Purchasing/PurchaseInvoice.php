@@ -21,7 +21,7 @@ class PurchaseInvoice extends Model
 
     protected $fillable = [
         'invoice_no', 'supplier_invoice_no', 'date', 'due_date', 'partner_id',
-        'purchase_order_id', 'subtotal', 'discount_amount', 'shipping_cost',
+        'purchase_order_id', 'subtotal', 'dpp_other_amount', 'discount_amount', 'shipping_cost',
         'tax_amount', 'total', 'paid_amount', 'status', 'notes',
         'created_by', 'posted_at',
     ];
@@ -31,6 +31,7 @@ class PurchaseInvoice extends Model
         'due_date' => 'date',
         'posted_at' => 'datetime',
         'subtotal' => 'decimal:2',
+        'dpp_other_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'tax_amount' => 'decimal:2',

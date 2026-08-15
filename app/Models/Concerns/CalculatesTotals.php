@@ -2,6 +2,8 @@
 
 namespace App\Models\Concerns;
 
+use App\Services\LineItemCalculator;
+
 /**
  * Recomputes header money columns from the document's own line items so the
  * stored totals can never drift from the lines.
@@ -14,6 +16,13 @@ trait CalculatesTotals
 
         $subtotal = round((float) $items->sum('subtotal'), 2);
         $tax = round((float) $items->sum('tax_amount'), 2);
+
+        // Nilai lain hanya berlaku pada baris berpajak; baris bebas pajak
+        // tetap memakai DPP penuh dan tidak ikut dijumlahkan.
+        $ratio = app(LineItemCalculator::class)->ratio();
+        $this->dpp_other_amount = round((float) $items
+            ->filter(fn ($item) => (float) $item->tax_rate > 0)
+            ->sum(fn ($item) => round((float) $item->subtotal * $ratio, 2)), 2);
 
         $this->subtotal = $subtotal;
         $this->tax_amount = $tax;

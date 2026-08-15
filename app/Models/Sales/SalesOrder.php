@@ -22,7 +22,7 @@ class SalesOrder extends Model
 
     protected $fillable = [
         'so_no', 'date', 'delivery_date', 'partner_id', 'warehouse_id', 'quotation_id',
-        'payment_term_id', 'customer_po_no', 'status', 'subtotal', 'discount_amount',
+        'payment_term_id', 'customer_po_no', 'status', 'subtotal', 'dpp_other_amount', 'discount_amount',
         'shipping_cost', 'tax_amount', 'total', 'notes', 'terms',
         'created_by', 'approved_by', 'approved_at',
     ];
@@ -32,6 +32,7 @@ class SalesOrder extends Model
         'delivery_date' => 'date',
         'approved_at' => 'datetime',
         'subtotal' => 'decimal:2',
+        'dpp_other_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'tax_amount' => 'decimal:2',

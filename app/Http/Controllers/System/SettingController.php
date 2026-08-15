@@ -4,6 +4,7 @@ namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
 use App\Models\Accounting\Account;
+use App\Models\Master\Tax;
 use App\Models\NumberSequence;
 use App\Services\AccountMap;
 use App\Services\ModuleRegistry;
@@ -90,6 +91,45 @@ class SettingController extends Controller
         $this->settings->setMany($data, 'accounting');
 
         return back()->with('success', 'Pemetaan akun berhasil disimpan.');
+    }
+
+    /**
+     * DPP Nilai Lain (PMK 131/2024): tarif 12% dikenakan atas 11/12 harga jual,
+     * setara 11% dari harga jual.
+     */
+    public function updateTax(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'use_dpp_nilai_lain' => ['boolean'],
+            'dpp_ratio_numerator' => ['required_if:use_dpp_nilai_lain,1', 'integer', 'min:1', 'max:100'],
+            'dpp_ratio_denominator' => ['required_if:use_dpp_nilai_lain,1', 'integer', 'min:1', 'max:100'],
+        ], [], [
+            'dpp_ratio_numerator' => 'Pembilang rasio',
+            'dpp_ratio_denominator' => 'Penyebut rasio',
+        ]);
+
+        $aktif = $request->boolean('use_dpp_nilai_lain');
+
+        if ($aktif && $data['dpp_ratio_numerator'] > $data['dpp_ratio_denominator']) {
+            return back()->withInput()->with('error',
+                'Pembilang rasio tidak boleh melebihi penyebutnya — DPP Nilai Lain selalu lebih kecil dari harga jual.');
+        }
+
+        $this->settings->setMany([
+            'use_dpp_nilai_lain' => $aktif,
+            'dpp_ratio_numerator' => (int) $data['dpp_ratio_numerator'],
+            'dpp_ratio_denominator' => (int) $data['dpp_ratio_denominator'],
+        ], 'accounting');
+
+        // Tarif pajak default harus 12% agar hasilnya setara 11% dari harga jual.
+        $tarifDefault = (float) Tax::where('is_default', true)->value('rate');
+        $peringatan = ($aktif && abs($tarifDefault - 12) >= 0.01)
+            ? " Perhatian: tarif pajak default masih {$tarifDefault}%. Ubah menjadi 12% di Data Master → Pajak, "
+                .'karena DPP Nilai Lain dirancang untuk dipasangkan dengan tarif 12%.'
+            : '';
+
+        return back()->with($peringatan ? 'warning' : 'success',
+            'Pengaturan pajak berhasil disimpan.'.$peringatan);
     }
 
     public function updateOperations(Request $request): RedirectResponse
