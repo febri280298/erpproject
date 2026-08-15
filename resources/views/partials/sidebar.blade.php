@@ -38,10 +38,18 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="navbar-brand navbar-brand-autodark">
+        {{--
+            Sengaja tanpa `navbar-brand-autodark`: kelas itu memaksa
+            `filter: brightness(0) invert(1)` pada logo di sidebar gelap, yang
+            mengubah logo berwarna menjadi siluet putih polos.
+        --}}
+        <div class="navbar-brand">
             <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-2 text-decoration-none">
                 @if(! empty($company['logo']))
-                    <img src="{{ asset('storage/'.$company['logo']) }}" alt="{{ $company['name'] }}" class="navbar-brand-image" style="max-height:2rem">
+                    {{-- Alas putih agar logo transparan tetap terbaca di sidebar gelap --}}
+                    <img src="{{ asset('storage/'.$company['logo']) }}" alt="{{ $company['name'] }}"
+                         class="rounded bg-white p-1 flex-shrink-0"
+                         style="max-height:2.25rem; max-width:2.75rem; object-fit:contain">
                 @else
                     <span class="avatar avatar-sm bg-primary text-white"><i class="ti ti-building-factory-2"></i></span>
                 @endif
