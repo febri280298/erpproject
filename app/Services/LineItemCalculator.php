@@ -37,18 +37,29 @@ class LineItemCalculator
     }
 
     /**
+     * Every money column of the document header in one array.
+     *
+     * `discount_amount` and `shipping_cost` are echoed back deliberately: an
+     * emptied input arrives as null (Laravel converts "" to null), and the
+     * columns are NOT NULL, so the caller must never write the raw request
+     * value straight to the model.
+     *
      * @param  array<int,array<string,mixed>>  $rows  already passed through calculate()
-     * @return array{subtotal:float,tax_amount:float,total:float}
+     * @return array{subtotal:float,discount_amount:float,shipping_cost:float,tax_amount:float,total:float}
      */
     public function totals(array $rows, float $discountAmount = 0, float $shippingCost = 0): array
     {
         $subtotal = round(array_sum(array_column($rows, 'subtotal')), 2);
         $tax = round(array_sum(array_column($rows, 'tax_amount')), 2);
+        $discount = round($discountAmount, 2);
+        $shipping = round($shippingCost, 2);
 
         return [
             'subtotal' => $subtotal,
+            'discount_amount' => $discount,
+            'shipping_cost' => $shipping,
             'tax_amount' => $tax,
-            'total' => round($subtotal - $discountAmount + $shippingCost + $tax, 2),
+            'total' => round($subtotal - $discount + $shipping + $tax, 2),
         ];
     }
 }
