@@ -161,6 +161,23 @@ HPP mengikuti **pergerakan fisik barang** (surat jalan), bukan faktur — sehing
 dan kartu stok selalu konsisten. Transfer antar gudang tidak menghasilkan jurnal karena
 nilai persediaan total tidak berubah.
 
+### Satu Faktur untuk Beberapa Surat Jalan
+
+Pengiriman yang dilakukan beberapa kali dapat ditagih sekaligus dalam satu faktur
+lewat **Faktur Penjualan → Dari Surat Jalan**: pilih customer, centang pengiriman
+yang akan ditagih, lalu fakturnya tersusun otomatis.
+
+- Baris dengan produk, harga, diskon, dan pajak yang sama **digabung** menjadi satu,
+  sehingga faktur tetap ringkas walau menagih banyak pengiriman.
+- Jumlah yang ditagih adalah yang dikirim **dikurangi yang sudah diretur**, jadi
+  barang yang telanjur kembali tidak ikut tertagih.
+- Tautannya disimpan pada `delivery_orders.sales_invoice_id`. Satu surat jalan hanya
+  bisa ditagih satu faktur — inilah yang mencegah pengiriman tertagih dua kali,
+  bahkan bila dua faktur dibuat bersamaan.
+- Hanya surat jalan berstatus *posted* yang bisa ditagih; yang masih draft ditolak.
+- Membatalkan atau menghapus faktur **melepas** tautannya, sehingga pengiriman
+  tersebut dapat ditagih ulang oleh faktur pengganti.
+
 ### Retur Penjualan
 
 Retur adalah dokumen tersendiri, bukan pembatalan surat jalan. Surat jalan asalnya tetap

@@ -11,6 +11,24 @@
         </div>
     @endisset
 
+    @isset($sourceDeliveries)
+        <div class="alert alert-info">
+            <h4 class="alert-title">
+                Menagih {{ $sourceDeliveries->count() }} surat jalan
+            </h4>
+            <div class="mt-1">
+                @foreach($sourceDeliveries as $sj)
+                    <a href="{{ route('delivery-orders.show', $sj) }}" class="fw-bold">{{ $sj->do_no }}</a>
+                    <span class="text-secondary">({{ fdate($sj->date) }})</span>{{ ! $loop->last ? ' · ' : '' }}
+                @endforeach
+            </div>
+            <div class="text-secondary small mt-1">
+                Barang yang sama dengan harga sama digabung menjadi satu baris.
+                Barang yang sudah diretur tidak ikut ditagih.
+            </div>
+        </div>
+    @endisset
+
     <x-doc-form :action="$action" :method="$method" :products="$products" :rows="$rows"
                 price-field="sale_price"
                 :discount-amount="$document->discount_amount ?? 0"
@@ -19,15 +37,21 @@
                 submit-label="Simpan Faktur">
 
         <x-slot:header>
+            @isset($sourceDeliveries)
+                @foreach($sourceDeliveries as $sj)
+                    <input type="hidden" name="delivery_order_ids[]" value="{{ $sj->id }}">
+                @endforeach
+            @endisset
+
             <x-form.input name="date" label="Tanggal Faktur" type="date"
                           :value="optional($document?->date)->toDateString() ?? now()->toDateString()" required col="col-md-3" />
             <x-form.input name="due_date" label="Jatuh Tempo" type="date"
                           :value="optional($document?->due_date)->toDateString() ?? ($defaultDueDate ?? null)" col="col-md-3" />
             <x-form.select name="partner_id" label="Pelanggan" :options="$customers"
-                           :value="$document->partner_id ?? ($sourceOrder->partner_id ?? null)" required col="col-md-6" />
+                           :value="$document->partner_id ?? ($sourceOrder->partner_id ?? ($sourceDeliveries[0]->partner_id ?? null))" required col="col-md-6" />
 
             <x-form.select name="sales_order_id" label="Pesanan Penjualan" col="col-md-6"
-                           :value="$document->sales_order_id ?? ($sourceOrder->id ?? null)"
+                           :value="$document->sales_order_id ?? ($sourceOrder->id ?? ($lockedSalesOrderId ?? null))"
                            :options="$openOrders->mapWithKeys(fn($o) => [$o->id => $o->so_no.' — '.$o->customer?->name])"
                            placeholder="— Tanpa pesanan —" />
             <div class="col-md-6">

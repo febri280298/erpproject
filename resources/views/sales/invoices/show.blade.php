@@ -91,6 +91,17 @@
                             <a href="{{ route('sales-orders.show', $document->sales_order_id) }}">{{ $document->salesOrder->so_no }}</a>
                         @else — @endif
                     </dd>
+                    @if($document->deliveryOrders->isNotEmpty())
+                        <dt class="col-5 text-secondary">Surat Jalan</dt>
+                        <dd class="col-7">
+                            @foreach($document->deliveryOrders as $sj)
+                                <div>
+                                    <a href="{{ route('delivery-orders.show', $sj) }}">{{ $sj->do_no }}</a>
+                                    <span class="text-secondary small">{{ fdate($sj->date) }}</span>
+                                </div>
+                            @endforeach
+                        </dd>
+                    @endif
                     <dt class="col-5 text-secondary">Dibuat oleh</dt>
                     <dd class="col-7">{{ $document->creator?->name ?? '—' }}</dd>
                     <dt class="col-5 text-secondary">Diposting</dt>

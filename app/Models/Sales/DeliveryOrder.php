@@ -19,7 +19,7 @@ class DeliveryOrder extends Model
     use HasDocumentStatus, LogsActivity;
 
     protected $fillable = [
-        'do_no', 'date', 'sales_order_id', 'partner_id', 'warehouse_id',
+        'do_no', 'date', 'sales_order_id', 'sales_invoice_id', 'partner_id', 'warehouse_id',
         'driver_name', 'vehicle_no', 'shipping_address', 'status', 'notes',
         'created_by', 'posted_at',
     ];
@@ -62,6 +62,31 @@ class DeliveryOrder extends Model
     public function returns(): HasMany
     {
         return $this->hasMany(SalesReturn::class);
+    }
+
+    public function salesInvoice(): BelongsTo
+    {
+        return $this->belongsTo(SalesInvoice::class);
+    }
+
+    public function isInvoiced(): bool
+    {
+        return $this->sales_invoice_id !== null;
+    }
+
+    /** Sudah dikirim tetapi belum ditagih faktur mana pun. */
+    public function scopeUninvoiced(Builder $query): Builder
+    {
+        return $query->where('status', 'posted')->whereNull('sales_invoice_id');
+    }
+
+    /**
+     * Jumlah bersih yang layak ditagih: yang dikirim dikurangi yang sudah
+     * diretur, sehingga barang yang telanjur kembali tidak ikut tertagih.
+     */
+    public function billableItems()
+    {
+        return $this->items->filter(fn (DeliveryOrderItem $i) => $i->returnableQty() > 0);
     }
 
     /** Sudah diposting dan masih menyisakan barang yang bisa dikembalikan. */

@@ -106,6 +106,12 @@ class SalesInvoice extends Model
         return $this->hasMany(SalesReturn::class);
     }
 
+    /** Surat jalan yang ditagih oleh faktur ini — bisa lebih dari satu. */
+    public function deliveryOrders(): HasMany
+    {
+        return $this->hasMany(DeliveryOrder::class);
+    }
+
     /**
      * Sisa tagihan setelah pembayaran dan nota kredit retur.
      *

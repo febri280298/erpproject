@@ -101,7 +101,7 @@ abstract class LineItemDocumentController extends Controller
             );
 
             $document = $this->model::create(array_merge(
-                Arr::except($data, ['items']),
+                Arr::except($data, $this->headerExcept()),
                 $totals,
                 [
                     $this->numberField => $this->numbers->next($this->numberModule, $data['date']),
@@ -111,6 +111,7 @@ abstract class LineItemDocumentController extends Controller
             ));
 
             $document->items()->createMany($this->mapRows($rows));
+            $this->afterSave($document, $data);
 
             return $document;
         });
@@ -163,11 +164,12 @@ abstract class LineItemDocumentController extends Controller
                 (float) ($data['shipping_cost'] ?? 0),
             );
 
-            $document->update(array_merge(Arr::except($data, ['items']), $totals));
+            $document->update(array_merge(Arr::except($data, $this->headerExcept()), $totals));
 
             // Rebuilding is safer than diffing: draft items carry no downstream state.
             $document->items()->delete();
             $document->items()->createMany($this->mapRows($rows));
+            $this->afterSave($document, $data);
         });
 
         return redirect()
@@ -204,6 +206,20 @@ abstract class LineItemDocumentController extends Controller
             'items.*.tax_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ];
     }
+
+    /**
+     * Kunci request yang bukan kolom header, sehingga tidak ikut di-mass-assign.
+     * Subclass menambahkan kunci bantunya sendiri di sini.
+     *
+     * @return array<int,string>
+     */
+    protected function headerExcept(): array
+    {
+        return ['items'];
+    }
+
+    /** Hook: dijalankan di dalam transaksi setelah item tersimpan. */
+    protected function afterSave(Model $document, array $data): void {}
 
     /** Strip anything the item table has no column for. */
     protected function mapRows(array $rows): array

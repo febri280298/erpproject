@@ -5,6 +5,11 @@
 
 @section('actions')
     @can('sales-invoice.create')
+        <a href="{{ route('sales-invoices.select-deliveries') }}" class="btn">
+            <i class="ti ti-truck-delivery me-1"></i> Dari Surat Jalan
+        </a>
+    @endcan
+    @can('sales-invoice.create')
         <a href="{{ route('sales-invoices.create') }}" class="btn btn-primary">
             <i class="ti ti-plus me-1"></i> Buat Faktur
         </a>

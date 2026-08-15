@@ -216,6 +216,12 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('delivery-orders/{deliveryOrder}/print', [DeliveryOrderController::class, 'print'])
             ->name('delivery-orders.print')->middleware('permission:delivery-order.view');
 
+        // Didaftarkan sebelum resource agar tidak tertangkap sales-invoices/{salesInvoice}.
+        Route::get('sales-invoices/select-deliveries', [SalesInvoiceController::class, 'selectDeliveries'])
+            ->name('sales-invoices.select-deliveries')->middleware('permission:sales-invoice.create');
+        Route::get('sales-invoices/from-deliveries', [SalesInvoiceController::class, 'createFromDeliveries'])
+            ->name('sales-invoices.from-deliveries')->middleware('permission:sales-invoice.create');
+
         $resource('sales-invoices', SalesInvoiceController::class, 'sales-invoice', 'salesInvoice');
         Route::get('sales-invoices/from-order/{salesOrder}', [SalesInvoiceController::class, 'createFromOrder'])
             ->name('sales-invoices.from-order')->middleware('permission:sales-invoice.create');
