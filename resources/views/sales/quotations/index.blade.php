@@ -4,6 +4,10 @@
 @section('pretitle', 'Penjualan')
 
 @section('actions')
+    {{-- Filter yang sedang aktif ikut terbawa agar isi berkas sama dengan yang di layar --}}
+    <a href="{{ route('quotations.export', request()->query()) }}" class="btn">
+        <i class="ti ti-file-spreadsheet me-1"></i> Export Excel
+    </a>
     @can('quotation.create')
         <a href="{{ route('quotations.create') }}" class="btn btn-primary">
             <i class="ti ti-plus me-1"></i> Buat Penawaran

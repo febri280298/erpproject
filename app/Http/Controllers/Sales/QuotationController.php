@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Sales;
 
+use App\Exports\QuotationExport;
+use App\Exports\QuotationsExport;
 use App\Http\Controllers\Concerns\LineItemDocumentController;
 use App\Models\Master\Partner;
 use App\Models\Sales\Quotation;
+use App\Services\SettingService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class QuotationController extends LineItemDocumentController
 {
@@ -83,5 +88,25 @@ class QuotationController extends LineItemDocumentController
         $quotation->load('items.product.uom', 'customer');
 
         return view("{$this->viewPath}.print", ['document' => $quotation]);
+    }
+
+    /** Satu penawaran sebagai lembar kerja Excel, lengkap dengan rumus total. */
+    public function excel(Quotation $quotation, SettingService $settings): BinaryFileResponse
+    {
+        $quotation->load('items.product.uom', 'customer', 'creator');
+
+        return Excel::download(
+            new QuotationExport($quotation, $settings),
+            'Penawaran-'.str_replace('/', '-', $quotation->quotation_no).'.xlsx',
+        );
+    }
+
+    /** Daftar penawaran mengikuti filter yang sedang aktif di halaman indeks. */
+    public function exportList(Request $request): BinaryFileResponse
+    {
+        return Excel::download(
+            new QuotationsExport($request->query()),
+            'Daftar-Penawaran-'.now()->format('Ymd-His').'.xlsx',
+        );
     }
 }

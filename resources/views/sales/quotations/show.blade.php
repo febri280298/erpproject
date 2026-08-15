@@ -8,6 +8,10 @@
         <i class="ti ti-printer me-1"></i> Cetak
     </a>
 
+    <a href="{{ route('quotations.excel', $document) }}" class="btn">
+        <i class="ti ti-file-spreadsheet me-1"></i> Excel
+    </a>
+
     @can('quotation.edit')
         @if($document->isEditable())
             <a href="{{ route('quotations.edit', $document) }}" class="btn"><i class="ti ti-edit me-1"></i> Ubah</a>

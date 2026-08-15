@@ -180,7 +180,13 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     /* ----------------------------------------------------------------- Sales */
     Route::middleware('module:quotation')->group(function () use ($resource) {
+        // Didaftarkan sebelum resource agar tidak tertangkap oleh quotations/{quotation}.
+        Route::get('quotations/export', [QuotationController::class, 'exportList'])
+            ->name('quotations.export')->middleware('permission:quotation.view');
+
         $resource('quotations', QuotationController::class, 'quotation', 'quotation');
+        Route::get('quotations/{quotation}/excel', [QuotationController::class, 'excel'])
+            ->name('quotations.excel')->middleware('permission:quotation.view');
         Route::post('quotations/{quotation}/transition', [QuotationController::class, 'transition'])
             ->name('quotations.transition')->middleware('permission:quotation.edit');
         Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])
