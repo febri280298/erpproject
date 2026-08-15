@@ -4,31 +4,54 @@
 @section('pretitle', 'Penjualan · ' . $nextNumber)
 
 @section('content')
-    @if(! $order)
-        <x-card title="Pilih Pesanan Penjualan">
-            @if($openOrders->isEmpty())
-                <x-empty icon="ti ti-file-off" title="Tidak ada pesanan menunggu pengiriman"
-                         message="Konfirmasi sebuah pesanan penjualan terlebih dahulu." />
-            @else
-                <form method="GET" class="row g-2 align-items-end">
-                    <div class="col-md-8">
-                        <label class="form-label required" for="sales_order_id">Pesanan Penjualan</label>
-                        <select name="sales_order_id" id="sales_order_id" class="form-select" required>
-                            <option value="">— Pilih pesanan —</option>
-                            @foreach($openOrders as $openOrder)
-                                <option value="{{ $openOrder->id }}">
-                                    {{ $openOrder->so_no }} · {{ $openOrder->customer?->name }} · {{ fdate($openOrder->date) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary">Lanjut</button>
-                    </div>
-                </form>
-            @endif
-        </x-card>
-    @else
+    {{-- Langkah pertama: pilih sumbernya — dari pesanan penjualan atau lepas. --}}
+    @if(! $order && ! $manual)
+        <div class="row row-cards">
+            <div class="col-md-6">
+                <x-card title="Dari Pesanan Penjualan"
+                        subtitle="Item dan sisa kirim ditarik otomatis dari pesanan.">
+                    @if($openOrders->isEmpty())
+                        <x-empty icon="ti ti-file-off" title="Tidak ada pesanan menunggu pengiriman"
+                                 message="Konfirmasi sebuah pesanan penjualan terlebih dahulu, atau buat surat jalan manual." />
+                    @else
+                        <form method="GET" class="row g-2 align-items-end">
+                            <div class="col-12">
+                                <label class="form-label required" for="sales_order_id">Pesanan Penjualan</label>
+                                <select name="sales_order_id" id="sales_order_id" class="form-select" required>
+                                    <option value="">— Pilih pesanan —</option>
+                                    @foreach($openOrders as $openOrder)
+                                        <option value="{{ $openOrder->id }}">
+                                            {{ $openOrder->so_no }} · {{ $openOrder->customer?->name }} · {{ fdate($openOrder->date) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="ti ti-arrow-right me-1"></i> Lanjut
+                                </button>
+                            </div>
+                        </form>
+                    @endif
+                </x-card>
+            </div>
+
+            <div class="col-md-6">
+                <x-card title="Tanpa Pesanan Penjualan"
+                        subtitle="Pilih customer dan produknya sendiri.">
+                    <p class="text-secondary">
+                        Dipakai untuk kiriman contoh barang, penggantian barang, atau penjualan
+                        langsung yang tidak melewati pesanan penjualan.
+                    </p>
+                    <a href="{{ route('delivery-orders.create', ['mode' => 'manual']) }}" class="btn btn-outline-primary w-100">
+                        <i class="ti ti-pencil-plus me-1"></i> Buat Surat Jalan Manual
+                    </a>
+                </x-card>
+            </div>
+        </div>
+
+    {{-- Jalur A: menarik sisa item dari pesanan penjualan --}}
+    @elseif($order)
         <form method="POST" action="{{ route('delivery-orders.store') }}">
             @csrf
             <input type="hidden" name="sales_order_id" value="{{ $order->id }}">
@@ -88,7 +111,101 @@
 
                 <x-slot:footer>
                     <div class="d-flex gap-2 justify-content-end">
-                        <a href="{{ route('delivery-orders.index') }}" class="btn btn-link">Batal</a>
+                        <a href="{{ route('delivery-orders.create') }}" class="btn btn-link">Kembali</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-device-floppy me-1"></i> Simpan sebagai Draft
+                        </button>
+                    </div>
+                </x-slot:footer>
+            </x-card>
+        </form>
+
+    {{-- Jalur B: surat jalan lepas, produk dipilih bebas --}}
+    @else
+        <form method="POST" action="{{ route('delivery-orders.store') }}"
+              x-data="deliveryItems({ products: {{ Js::from($products) }} })"
+              @submit="validate($event)">
+            @csrf
+
+            <div class="alert alert-info">
+                <i class="ti ti-info-circle me-1"></i>
+                Surat jalan ini tidak terhubung ke pesanan penjualan. Stok tetap berkurang saat
+                diposting, dan HPP tercatat seperti pengiriman biasa.
+            </div>
+
+            <x-card title="Informasi Pengiriman">
+                <div class="row g-3">
+                    <x-form.select name="partner_id" label="Customer" :options="$customers" required col="col-md-4"
+                                   placeholder="— Pilih customer —" />
+                    <x-form.select name="warehouse_id" label="Gudang Asal" :options="$warehouses"
+                                   :value="$defaultWarehouse" required col="col-md-4" :placeholder="false" />
+                    <x-form.input name="date" label="Tanggal Kirim" type="date" :value="now()->toDateString()" required col="col-md-4" />
+                    <x-form.input name="driver_name" label="Nama Pengemudi" col="col-md-4" />
+                    <x-form.input name="vehicle_no" label="No. Kendaraan" col="col-md-4" />
+                    <x-form.textarea name="shipping_address" label="Alamat Pengiriman" rows="2" />
+                </div>
+            </x-card>
+
+            <x-card title="Barang yang Dikirim" flush class="mt-3">
+                <x-slot:actions>
+                    <button type="button" class="btn btn-sm btn-primary" @click="addRow()">
+                        <i class="ti ti-plus me-1"></i> Tambah Baris
+                    </button>
+                </x-slot:actions>
+
+                <div class="table-responsive">
+                    <table class="table table-vcenter table-items card-table mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width:2.5rem">#</th>
+                            <th style="min-width:18rem">Produk</th>
+                            <th style="width:6rem">Satuan</th>
+                            <th class="col-qty text-end">Jumlah Kirim</th>
+                            <th style="min-width:12rem">Keterangan</th>
+                            <th class="col-action"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <template x-for="(row, index) in rows" :key="index">
+                            <tr>
+                                <td class="text-secondary" x-text="index + 1"></td>
+                                <td>
+                                    <select class="form-select" :name="`items[${index}][product_id]`"
+                                            x-model="row.product_id" @change="onProductChange(index)" required>
+                                        <option value="">— Pilih produk —</option>
+                                        <template x-for="p in products" :key="p.id">
+                                            <option :value="p.id" x-text="`${p.sku} — ${p.name}`"></option>
+                                        </template>
+                                    </select>
+                                </td>
+                                <td class="text-secondary" x-text="row.uom || '—'"></td>
+                                <td>
+                                    <input type="number" step="0.0001" min="0.0001" class="form-control text-end"
+                                           :name="`items[${index}][quantity]`" x-model.number="row.quantity" required>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" maxlength="255"
+                                           :name="`items[${index}][notes]`" x-model="row.notes">
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-icon btn-ghost-danger" @click="removeRow(index)"
+                                            aria-label="Hapus baris">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-body border-top">
+                    <x-form.textarea name="notes" label="Catatan" rows="2" />
+                </div>
+
+                <x-slot:footer>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{{ route('delivery-orders.create') }}" class="btn btn-link">Kembali</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="ti ti-device-floppy me-1"></i> Simpan sebagai Draft
                         </button>

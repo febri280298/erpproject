@@ -4,6 +4,7 @@ import { Tooltip } from '@tabler/core/dist/js/tabler.esm.min.js';
 import Alpine from 'alpinejs';
 import ApexCharts from 'apexcharts';
 
+import deliveryItems from './delivery-items';
 import docItems from './doc-items';
 import partnerPriceRows from './partner-price-rows';
 import { fmtNumber, fmtMoney, parseNum } from './helpers';
@@ -14,6 +15,7 @@ window.erp = { fmtNumber, fmtMoney, parseNum };
 
 Alpine.data('docItems', docItems);
 Alpine.data('partnerPriceRows', partnerPriceRows);
+Alpine.data('deliveryItems', deliveryItems);
 
 Alpine.start();
 
