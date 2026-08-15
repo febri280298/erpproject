@@ -24,6 +24,8 @@ class AccountMap
         'acc_tax_output' => ['PPN Keluaran', '2130'],
         'acc_sales' => ['Pendapatan Penjualan', '4110'],
         'acc_sales_discount' => ['Potongan Penjualan', '4120'],
+        'acc_sales_return' => ['Retur Penjualan', '4130'],
+        'acc_damaged_goods' => ['Kerugian Barang Rusak', '6190'],
         'acc_cogs' => ['Harga Pokok Penjualan', '5110'],
         'acc_purchase_discount' => ['Potongan Pembelian', '5120'],
         'acc_freight_in' => ['Beban Angkut Pembelian', '5130'],

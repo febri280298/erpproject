@@ -26,6 +26,7 @@ class DocumentNumberService
         'delivery_order' => ['prefix' => 'SJ', 'reset_period' => 'monthly'],
         'sales_invoice' => ['prefix' => 'INV', 'reset_period' => 'monthly'],
         'customer_payment' => ['prefix' => 'RCP', 'reset_period' => 'monthly'],
+        'sales_return' => ['prefix' => 'RTR', 'reset_period' => 'monthly'],
         'stock_transfer' => ['prefix' => 'TRF', 'reset_period' => 'monthly'],
         'stock_adjustment' => ['prefix' => 'ADJ', 'reset_period' => 'monthly'],
         'journal' => ['prefix' => 'JV', 'reset_period' => 'monthly'],

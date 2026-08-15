@@ -14,29 +14,37 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class DeliveryOrder extends Model
+/**
+ * Barang yang dikembalikan customer setelah surat jalan diposting.
+ *
+ * Surat jalan asalnya tetap berstatus posted — retur adalah peristiwa baru,
+ * bukan pembatalan pengiriman.
+ */
+class SalesReturn extends Model
 {
     use HasDocumentStatus, LogsActivity;
 
     protected $fillable = [
-        'do_no', 'date', 'sales_order_id', 'partner_id', 'warehouse_id',
-        'driver_name', 'vehicle_no', 'shipping_address', 'status', 'notes',
-        'created_by', 'posted_at',
+        'return_no', 'date', 'delivery_order_id', 'sales_invoice_id', 'partner_id',
+        'warehouse_id', 'reason', 'subtotal', 'tax_amount', 'total',
+        'cost_returned', 'cost_damaged', 'issue_credit_note', 'status',
+        'notes', 'created_by', 'posted_at',
     ];
 
     protected $casts = [
         'date' => 'date',
         'posted_at' => 'datetime',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'total' => 'decimal:2',
+        'cost_returned' => 'decimal:2',
+        'cost_damaged' => 'decimal:2',
+        'issue_credit_note' => 'boolean',
     ];
 
     public function items(): HasMany
     {
-        return $this->hasMany(DeliveryOrderItem::class);
-    }
-
-    public function salesOrder(): BelongsTo
-    {
-        return $this->belongsTo(SalesOrder::class);
+        return $this->hasMany(SalesReturnItem::class);
     }
 
     public function customer(): BelongsTo
@@ -49,6 +57,16 @@ class DeliveryOrder extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
+    public function deliveryOrder(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryOrder::class);
+    }
+
+    public function salesInvoice(): BelongsTo
+    {
+        return $this->belongsTo(SalesInvoice::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -59,16 +77,10 @@ class DeliveryOrder extends Model
         return $this->morphMany(Journal::class, 'source', 'source_type', 'source_id');
     }
 
-    public function returns(): HasMany
+    /** Nota kredit hanya terbit bila diminta dan menempel pada sebuah faktur. */
+    public function hasCreditNote(): bool
     {
-        return $this->hasMany(SalesReturn::class);
-    }
-
-    /** Sudah diposting dan masih menyisakan barang yang bisa dikembalikan. */
-    public function canReturn(): bool
-    {
-        return $this->status === 'posted'
-            && $this->items->contains(fn (DeliveryOrderItem $i) => $i->returnableQty() > 0);
+        return $this->issue_credit_note && $this->sales_invoice_id !== null;
     }
 
     public function totalQuantity(): float
@@ -76,10 +88,15 @@ class DeliveryOrder extends Model
         return (float) $this->items->sum('quantity');
     }
 
+    public function damagedQuantity(): float
+    {
+        return (float) $this->items->where('condition', SalesReturnItem::DAMAGED)->sum('quantity');
+    }
+
     public function scopeFilter(Builder $query, array $f): Builder
     {
         return $query
-            ->when($f['q'] ?? null, fn ($q, $v) => $q->where('do_no', 'like', "%{$v}%"))
+            ->when($f['q'] ?? null, fn ($q, $v) => $q->where('return_no', 'like', "%{$v}%"))
             ->when($f['partner_id'] ?? null, fn ($q, $v) => $q->where('partner_id', $v))
             ->when($f['warehouse_id'] ?? null, fn ($q, $v) => $q->where('warehouse_id', $v))
             ->status($f['status'] ?? null)

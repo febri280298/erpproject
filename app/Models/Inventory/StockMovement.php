@@ -66,6 +66,7 @@ class StockMovement extends Model
             'transfer_out' => 'Transfer Keluar',
             'transfer_in' => 'Transfer Masuk',
             'adjustment' => 'Penyesuaian',
+            'sales_return' => 'Retur Penjualan',
             'production_in' => 'Hasil Produksi',
             'production_out' => 'Pemakaian Produksi',
             'opening' => 'Saldo Awal',

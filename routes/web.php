@@ -38,6 +38,7 @@ use App\Http\Controllers\Sales\DeliveryOrderController;
 use App\Http\Controllers\Sales\QuotationController;
 use App\Http\Controllers\Sales\SalesInvoiceController;
 use App\Http\Controllers\Sales\SalesOrderController;
+use App\Http\Controllers\Sales\SalesReturnController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\System\ActivityLogController;
 use App\Http\Controllers\System\RoleController;
@@ -230,6 +231,15 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('customer-payments.post')->middleware('permission:customer-payment.post');
         Route::post('customer-payments/{payment}/cancel', [CustomerPaymentController::class, 'cancel'])
             ->name('customer-payments.cancel')->middleware('permission:customer-payment.post');
+
+        $resource('sales-returns', SalesReturnController::class, 'sales-return', 'salesReturn',
+            ['index', 'create', 'store', 'show', 'destroy']);
+        Route::post('sales-returns/{salesReturn}/post', [SalesReturnController::class, 'post'])
+            ->name('sales-returns.post')->middleware('permission:sales-return.post');
+        Route::post('sales-returns/{salesReturn}/cancel', [SalesReturnController::class, 'cancel'])
+            ->name('sales-returns.cancel')->middleware('permission:sales-return.post');
+        Route::get('sales-returns/{salesReturn}/print', [SalesReturnController::class, 'print'])
+            ->name('sales-returns.print')->middleware('permission:sales-return.view');
     });
 
     /* ------------------------------------------------------------- Inventory */

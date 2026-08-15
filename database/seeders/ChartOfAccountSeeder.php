@@ -64,6 +64,7 @@ class ChartOfAccountSeeder extends Seeder
         ['6160', 'Beban Penyusutan', 'expense', 'operating', 'debit', true, '6000'],
         ['6170', 'Beban Administrasi & Umum', 'expense', 'operating', 'debit', true, '6000'],
         ['6180', 'Beban Pemasaran', 'expense', 'operating', 'debit', true, '6000'],
+        ['6190', 'Kerugian Barang Rusak', 'expense', 'operating', 'debit', true, '6000'],
 
         ['7000', 'PENDAPATAN LAIN', 'revenue', null, 'credit', false, null],
         ['7110', 'Selisih Persediaan (Laba)', 'revenue', 'other', 'credit', true, '7000'],

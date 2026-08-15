@@ -22,7 +22,7 @@ class SalesInvoice extends Model
     protected $fillable = [
         'invoice_no', 'date', 'due_date', 'partner_id', 'sales_order_id',
         'subtotal', 'discount_amount', 'shipping_cost', 'tax_amount', 'total',
-        'paid_amount', 'status', 'notes', 'terms', 'created_by', 'posted_at',
+        'paid_amount', 'credit_amount', 'status', 'notes', 'terms', 'created_by', 'posted_at',
     ];
 
     protected $casts = [
@@ -35,6 +35,7 @@ class SalesInvoice extends Model
         'tax_amount' => 'decimal:2',
         'total' => 'decimal:2',
         'paid_amount' => 'decimal:2',
+        'credit_amount' => 'decimal:2',
     ];
 
     public function items(): HasMany
@@ -100,17 +101,33 @@ class SalesInvoice extends Model
         };
     }
 
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SalesReturn::class);
+    }
+
+    /**
+     * Sisa tagihan setelah pembayaran dan nota kredit retur.
+     *
+     * Menimpa versi di CalculatesTotals karena hanya faktur penjualan yang
+     * dapat dikurangi oleh nota kredit.
+     */
+    public function outstandingAmount(): float
+    {
+        return round((float) $this->total - (float) $this->paid_amount - (float) $this->credit_amount, 2);
+    }
+
     public function syncPaymentStatus(): void
     {
         if (in_array($this->status, ['draft', 'cancelled'], true)) {
             return;
         }
 
-        $paid = round((float) $this->paid_amount, 2);
+        $settled = round((float) $this->paid_amount + (float) $this->credit_amount, 2);
         $total = round((float) $this->total, 2);
 
         $this->forceFill([
-            'status' => $paid <= 0 ? 'posted' : ($paid >= $total ? 'paid' : 'partial'),
+            'status' => $settled <= 0 ? 'posted' : ($settled >= $total ? 'paid' : 'partial'),
         ])->saveQuietly();
     }
 

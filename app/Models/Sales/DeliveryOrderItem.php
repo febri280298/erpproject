@@ -9,10 +9,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class DeliveryOrderItem extends Model
 {
     protected $fillable = [
-        'delivery_order_id', 'sales_order_item_id', 'product_id', 'quantity', 'notes',
+        'delivery_order_id', 'sales_order_item_id', 'product_id', 'quantity', 'returned_qty', 'notes',
     ];
 
-    protected $casts = ['quantity' => 'decimal:4'];
+    protected $casts = [
+        'quantity' => 'decimal:4',
+        'returned_qty' => 'decimal:4',
+    ];
+
+    /** Sisa yang masih boleh diretur dari baris pengiriman ini. */
+    public function returnableQty(): float
+    {
+        return max(0, round((float) $this->quantity - (float) $this->returned_qty, 4));
+    }
 
     public function deliveryOrder(): BelongsTo
     {

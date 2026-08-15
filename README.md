@@ -106,7 +106,7 @@ Sub-modul mengikuti induknya: mematikan **Pembelian** otomatis menonaktifkan
 
 **Laporan** — Penjualan, pembelian, persediaan, umur piutang, umur utang, produk terlaris.
 
-**Sistem** — Pengguna, peran & izin (152 permission, 8 peran), pengaturan perusahaan/akuntansi/operasional, format nomor dokumen, log aktivitas.
+**Sistem** — Pengguna, peran & izin (157 permission, 8 peran), pengaturan perusahaan/akuntansi/operasional, format nomor dokumen, log aktivitas.
 
 ## Harga Bertingkat & Riwayat Harga
 
@@ -151,6 +151,8 @@ Pembatalan tidak menghapus data — sistem menulis pergerakan stok balik dan jur
 | Surat Jalan | Harga Pokok Penjualan | Persediaan |
 | Faktur Penjualan | Piutang Usaha, Potongan Penjualan | Pendapatan, PPN Keluaran, Pendapatan Angkut |
 | Penerimaan Pembayaran | Kas / Bank | Piutang Usaha |
+| Retur Penjualan | Persediaan *(barang baik)*, Kerugian Barang Rusak *(rusak)* | Harga Pokok Penjualan |
+| — nota kreditnya | Retur Penjualan, PPN Keluaran | Piutang Usaha |
 | Penyesuaian Stok | Persediaan *atau* Selisih Persediaan (Rugi) | Selisih Persediaan (Laba) *atau* Persediaan |
 | Penyelesaian Produksi | Persediaan (barang jadi) | Persediaan (bahan), Overhead Dibebankan |
 | Penggajian | Beban Gaji | Utang BPJS, Utang PPh 21, Kas/Bank |
@@ -158,6 +160,23 @@ Pembatalan tidak menghapus data — sistem menulis pergerakan stok balik dan jur
 HPP mengikuti **pergerakan fisik barang** (surat jalan), bukan faktur — sehingga buku besar
 dan kartu stok selalu konsisten. Transfer antar gudang tidak menghasilkan jurnal karena
 nilai persediaan total tidak berubah.
+
+### Retur Penjualan
+
+Retur adalah dokumen tersendiri, bukan pembatalan surat jalan. Surat jalan asalnya tetap
+berstatus *posted* sehingga riwayat pengiriman utuh, sementara retur mencatat peristiwa
+barunya sendiri: tanggalnya sendiri, boleh sebagian, dan boleh berulang selama masih ada
+sisa yang bisa dikembalikan.
+
+- **Kondisi per baris** — barang *Baik* masuk kembali ke stok; barang *Rusak* tidak
+  menambah stok dan langsung dibebankan sebagai kerugian.
+- **Harga pokok** diambil dari pergerakan stok surat jalan asalnya, bukan rata-rata
+  terbaru, sehingga barang kembali dengan biaya yang sama seperti saat keluar.
+- **Nota kredit** opsional dan menempel pada sebuah faktur. Nilainya masuk ke
+  `sales_invoices.credit_amount`, sehingga sisa tagihan berkurang tanpa dicatat
+  seolah-olah sudah dibayar.
+- Surat jalan yang sudah punya retur **tidak dapat dibatalkan**, karena stoknya akan
+  terhitung dua kali. Batalkan returnya lebih dulu.
 
 ## Arsitektur
 

@@ -127,6 +127,7 @@ return [
         'delivery-order' => ['view', 'create', 'edit', 'delete', 'post'],
         'sales-invoice' => ['view', 'create', 'edit', 'delete', 'post'],
         'customer-payment' => ['view', 'create', 'edit', 'delete', 'post'],
+        'sales-return' => ['view', 'create', 'edit', 'delete', 'post'],
 
         // Inventory
         'stock' => ['view'],
@@ -215,6 +216,7 @@ return [
                 'delivery-order' => 'Surat Jalan (DO)',
                 'sales-invoice' => 'Faktur Penjualan',
                 'customer-payment' => 'Pembayaran dari Customer',
+                'sales-return' => 'Retur Penjualan',
             ],
         ],
         'Stok & Gudang' => [
@@ -363,6 +365,7 @@ return [
                 ['label' => 'Surat Jalan (DO)', 'hint' => 'Kirim barang, stok berkurang', 'step' => '2', 'route' => 'delivery-orders.index', 'permission' => 'delivery-order.view'],
                 ['label' => 'Faktur Penjualan (Invoice)', 'hint' => 'Tagihan ke customer', 'step' => '3', 'route' => 'sales-invoices.index', 'permission' => 'sales-invoice.view'],
                 ['label' => 'Pembayaran dari Customer', 'hint' => 'Customer melunasi tagihan', 'step' => '4', 'route' => 'customer-payments.index', 'permission' => 'customer-payment.view'],
+                ['label' => 'Retur Penjualan', 'hint' => 'Barang kembali + nota kredit', 'route' => 'sales-returns.index', 'permission' => 'sales-return.view'],
             ],
         ],
         [
