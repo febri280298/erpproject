@@ -6,12 +6,16 @@ use App\Exports\ProductsExport;
 use App\Http\Controllers\Controller;
 use App\Imports\ProductsImport;
 use App\Models\Inventory\StockMovement;
+use App\Models\Master\Partner;
+use App\Models\Master\PriceLevel;
 use App\Models\Master\Product;
 use App\Models\Master\ProductCategory;
 use App\Models\Master\Tax;
 use App\Models\Master\Uom;
+use App\Services\PricingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -20,6 +24,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProductController extends Controller
 {
+    public function __construct(private readonly PricingService $pricing) {}
+
     public function index(Request $request): View
     {
         $products = Product::query()
@@ -57,7 +63,12 @@ class ProductController extends Controller
         $data = $this->validated($request);
         $data['image'] = $this->storeImage($request);
 
-        $product = Product::create($data);
+        $product = DB::transaction(function () use ($data, $request) {
+            $product = Product::create($data);
+            $this->savePrices($product, $request);
+
+            return $product;
+        });
 
         return redirect()
             ->route('products.show', $product)
@@ -66,7 +77,10 @@ class ProductController extends Controller
 
     public function show(Product $product): View
     {
-        $product->load(['category', 'uom', 'tax', 'stocks.warehouse']);
+        $product->load([
+            'category', 'uom', 'tax', 'stocks.warehouse',
+            'prices.level', 'supplierPrices.supplier',
+        ]);
 
         return view('master.products.show', [
             'product' => $product,
@@ -76,6 +90,10 @@ class ProductController extends Controller
                 ->latest('date')
                 ->latest('id')
                 ->limit(25)
+                ->get(),
+            'histories' => $product->priceHistories()
+                ->with('changer:id,name', 'partner:id,name', 'level:id,name')
+                ->limit(30)
                 ->get(),
         ]);
     }
@@ -96,11 +114,29 @@ class ProductController extends Controller
             $data['image'] = $image;
         }
 
-        $product->update($data);
+        $changed = DB::transaction(function () use ($product, $data, $request) {
+            $product->update($data);
+
+            return $this->savePrices($product, $request);
+        });
+
+        $note = $changed > 0 ? " {$changed} perubahan harga dicatat di riwayat." : '';
 
         return redirect()
             ->route('products.show', $product)
-            ->with('success', "Produk \"{$product->name}\" berhasil diperbarui.");
+            ->with('success', "Produk \"{$product->name}\" berhasil diperbarui.{$note}");
+    }
+
+    /**
+     * Writes both price tables through PricingService, which is what records
+     * the history rows.
+     */
+    private function savePrices(Product $product, Request $request): int
+    {
+        $changed = $this->pricing->syncSalePrices($product, $request->input('prices', []));
+        $changed += $this->pricing->syncSupplierPrices($product, $request->input('supplier_prices', []));
+
+        return $changed;
     }
 
     public function destroy(Product $product): RedirectResponse
@@ -200,12 +236,23 @@ class ProductController extends Controller
 
     private function formData(Product $product): array
     {
+        if ($product->exists) {
+            $product->loadMissing('prices', 'supplierPrices');
+        } else {
+            $product->setRelation('prices', collect())->setRelation('supplierPrices', collect());
+        }
+
         return [
             'product' => $product,
             'categories' => ProductCategory::active()->orderBy('name')->pluck('name', 'id'),
             'uoms' => Uom::active()->orderBy('code')->pluck('name', 'id'),
             'taxes' => Tax::active()->orderBy('code')->get()
                 ->mapWithKeys(fn (Tax $t) => [$t->id => $t->name.' ('.fnum($t->rate).'%)']),
+            'priceLevels' => PriceLevel::active()->ordered()->get(),
+            'suppliers' => Partner::suppliers()->active()->orderBy('name')->pluck('name', 'id'),
+            // Keyed so the form can look a stored price up by tier / supplier id.
+            'salePrices' => $product->prices->keyBy('price_level_id'),
+            'supplierRows' => $product->supplierPrices->keyBy('partner_id'),
         ];
     }
 
@@ -226,7 +273,24 @@ class ProductController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             'is_active' => ['boolean'],
             'image' => ['nullable', 'image', 'max:2048'],
+
+            'prices' => ['nullable', 'array', 'max:'.PriceLevel::MAX],
+            'prices.*.price_level_id' => ['required', 'integer', 'exists:price_levels,id'],
+            'prices.*.price' => ['nullable', 'numeric', 'min:0'],
+            'prices.*.min_qty' => ['nullable', 'numeric', 'min:0'],
+
+            'supplier_prices' => ['nullable', 'array', 'max:20'],
+            'supplier_prices.*.partner_id' => ['required', 'integer', 'exists:partners,id'],
+            'supplier_prices.*.price' => ['nullable', 'numeric', 'min:0'],
+            'supplier_prices.*.supplier_sku' => ['nullable', 'string', 'max:60'],
+            'supplier_prices.*.lead_time_days' => ['nullable', 'integer', 'min:0', 'max:365'],
+            'supplier_prices.*.min_order_qty' => ['nullable', 'numeric', 'min:0'],
+            'supplier_prices.*.is_preferred' => ['nullable', 'boolean'],
+            'supplier_prices.*.notes' => ['nullable', 'string', 'max:255'],
         ]);
+
+        // Price tables are written separately by PricingService.
+        unset($data['prices'], $data['supplier_prices']);
 
         // The uploaded file is handled separately; never mass-assign it.
         unset($data['image']);

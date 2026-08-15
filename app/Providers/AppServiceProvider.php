@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Master\Partner;
+use App\Models\Master\PriceLevel;
 use App\Services\AccountMap;
 use App\Services\DocumentNumberService;
 use App\Services\LineItemCalculator;
@@ -51,6 +53,22 @@ class AppServiceProvider extends ServiceProvider
 
         // Every view can ask which modules are switched on.
         View::share('modules', $this->app->make(ModuleRegistry::class));
+
+        // The line-item editor re-prices rows when a partner is picked, so it
+        // needs to know each customer's tier and which tier is the fallback.
+        View::composer('components.doc-form', function ($view) {
+            if (! Schema::hasTable('price_levels')) {
+                return;
+            }
+
+            $view->with([
+                'partnerLevels' => Partner::query()
+                    ->whereNotNull('price_level_id')
+                    ->pluck('price_level_id', 'id')
+                    ->all(),
+                'defaultPriceLevelId' => PriceLevel::defaultId(),
+            ]);
+        });
     }
 
     /** @return array<string,mixed> */

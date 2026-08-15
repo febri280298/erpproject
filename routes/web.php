@@ -21,6 +21,7 @@ use App\Http\Controllers\Manufacturing\BomController;
 use App\Http\Controllers\Manufacturing\ProductionOrderController;
 use App\Http\Controllers\Master\PartnerController;
 use App\Http\Controllers\Master\PaymentTermController;
+use App\Http\Controllers\Master\PriceLevelController;
 use App\Http\Controllers\Master\ProductCategoryController;
 use App\Http\Controllers\Master\ProductController;
 use App\Http\Controllers\Master\TaxController;
@@ -122,6 +123,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     $resource('categories', ProductCategoryController::class, 'category', 'record', ['index', 'create', 'store', 'edit', 'update', 'destroy']);
     $resource('uoms', UomController::class, 'uom', 'record', ['index', 'create', 'store', 'edit', 'update', 'destroy']);
     $resource('taxes', TaxController::class, 'tax', 'record', ['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    $resource('price-levels', PriceLevelController::class, 'price-level', 'record', ['index', 'create', 'store', 'edit', 'update', 'destroy']);
     $resource('payment-terms', PaymentTermController::class, 'payment-term', 'record', ['index', 'create', 'store', 'edit', 'update', 'destroy']);
     $resource('warehouses', WarehouseController::class, 'warehouse', 'record', ['index', 'create', 'store', 'edit', 'update', 'destroy']);
     $resource('partners', PartnerController::class, 'partner', 'partner');

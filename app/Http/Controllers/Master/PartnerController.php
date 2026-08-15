@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Master;
 use App\Http\Controllers\Controller;
 use App\Models\Master\Partner;
 use App\Models\Master\PaymentTerm;
+use App\Models\Master\PriceLevel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -40,6 +41,7 @@ class PartnerController extends Controller
                 'is_active' => true,
             ]),
             'paymentTerms' => PaymentTerm::active()->orderBy('days')->pluck('name', 'id'),
+            'priceLevels' => PriceLevel::active()->ordered()->pluck('name', 'id'),
         ]);
     }
 
@@ -70,6 +72,7 @@ class PartnerController extends Controller
         return view('master.partners.form', [
             'partner' => $partner,
             'paymentTerms' => PaymentTerm::active()->orderBy('days')->pluck('name', 'id'),
+            'priceLevels' => PriceLevel::active()->ordered()->pluck('name', 'id'),
         ]);
     }
 
@@ -112,6 +115,7 @@ class PartnerController extends Controller
             'address' => ['nullable', 'string', 'max:1000'],
             'city' => ['nullable', 'string', 'max:100'],
             'payment_term_id' => ['nullable', 'exists:payment_terms,id'],
+            'price_level_id' => ['nullable', 'exists:price_levels,id'],
             'credit_limit' => ['nullable', 'numeric', 'min:0'],
             'opening_balance' => ['nullable', 'numeric'],
             'notes' => ['nullable', 'string', 'max:1000'],

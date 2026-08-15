@@ -32,6 +32,10 @@
                         <x-form.input name="npwp" label="NPWP" :value="$partner->npwp" col="col-md-4" />
                         <x-form.select name="payment_term_id" label="Termin Pembayaran" :options="$paymentTerms"
                                        :value="$partner->payment_term_id" col="col-md-4" />
+                        <x-form.select name="price_level_id" label="Tingkat Harga" :options="$priceLevels"
+                                       :value="$partner->price_level_id" col="col-md-4"
+                                       placeholder="— Pakai tingkat default —"
+                                       help="Harga jual terisi otomatis dari tingkat ini saat membuat SO / faktur." />
                         <x-form.input name="credit_limit" label="Batas Kredit" type="number" step="0.01"
                                       :value="$partner->credit_limit ?? 0" col="col-md-4" prefix="Rp" />
                         <x-form.input name="opening_balance" label="Saldo Awal" type="number" step="0.01"

@@ -61,6 +61,69 @@ class Product extends Model
         return $this->hasMany(StockMovement::class);
     }
 
+    public function prices(): HasMany
+    {
+        return $this->hasMany(ProductPrice::class);
+    }
+
+    public function supplierPrices(): HasMany
+    {
+        return $this->hasMany(ProductSupplierPrice::class);
+    }
+
+    public function priceHistories(): HasMany
+    {
+        return $this->hasMany(PriceHistory::class)->latest('id');
+    }
+
+    /**
+     * Sale price for a tier, falling back to the default tier and then to the
+     * product's own `sale_price` so a product without tiers still sells.
+     */
+    public function priceFor(?int $priceLevelId = null): float
+    {
+        $prices = $this->relationLoaded('prices') ? $this->prices : $this->prices()->get();
+
+        $exact = $priceLevelId
+            ? $prices->firstWhere('price_level_id', $priceLevelId)
+            : null;
+
+        if ($exact && (float) $exact->price > 0) {
+            return (float) $exact->price;
+        }
+
+        $default = $prices->first(fn (ProductPrice $p) => $p->level?->is_default && (float) $p->price > 0);
+
+        return (float) ($default->price ?? $this->sale_price);
+    }
+
+    /**
+     * Purchase price from a supplier, falling back to the preferred supplier and
+     * then to the product's own `purchase_price`.
+     */
+    public function costFrom(?int $partnerId = null): float
+    {
+        $rows = $this->relationLoaded('supplierPrices') ? $this->supplierPrices : $this->supplierPrices()->get();
+
+        $exact = $partnerId ? $rows->firstWhere('partner_id', $partnerId) : null;
+
+        if ($exact && (float) $exact->price > 0) {
+            return (float) $exact->price;
+        }
+
+        $preferred = $rows->first(fn (ProductSupplierPrice $p) => $p->is_preferred && (float) $p->price > 0);
+
+        return (float) ($preferred->price ?? $this->purchase_price);
+    }
+
+    /** Cheapest active supplier offer, used to flag better deals. */
+    public function cheapestSupplierPrice(): ?ProductSupplierPrice
+    {
+        $rows = $this->relationLoaded('supplierPrices') ? $this->supplierPrices : $this->supplierPrices()->get();
+
+        return $rows->where('is_active', true)->where('price', '>', 0)->sortBy('price')->first();
+    }
+
     public function scopeStockable(Builder $query): Builder
     {
         return $query->where('type', self::TYPE_STOCK);
@@ -97,13 +160,16 @@ class Product extends Model
     /**
      * Payload consumed by the Alpine line-item editor.
      *
+     * `prices` and `supplier_prices` let the browser re-price every row the
+     * moment a customer or supplier is picked, without a round trip.
+     *
      * @return array<int,array<string,mixed>>
      */
     public static function optionsPayload(): array
     {
         return static::query()
             ->active()
-            ->with('uom:id,code', 'tax:id,rate')
+            ->with(['uom:id,code', 'tax:id,rate', 'prices:id,product_id,price_level_id,price', 'supplierPrices:id,product_id,partner_id,price'])
             ->orderBy('name')
             ->get(['id', 'sku', 'name', 'uom_id', 'tax_id', 'purchase_price', 'sale_price'])
             ->map(fn (self $p) => [
@@ -114,6 +180,12 @@ class Product extends Model
                 'purchase_price' => (float) $p->purchase_price,
                 'sale_price' => (float) $p->sale_price,
                 'tax_rate' => (float) ($p->tax?->rate ?? 0),
+                'prices' => $p->prices
+                    ->mapWithKeys(fn (ProductPrice $r) => [(string) $r->price_level_id => (float) $r->price])
+                    ->all(),
+                'supplier_prices' => $p->supplierPrices
+                    ->mapWithKeys(fn (ProductSupplierPrice $r) => [(string) $r->partner_id => (float) $r->price])
+                    ->all(),
             ])
             ->all();
     }

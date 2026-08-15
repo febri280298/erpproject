@@ -47,6 +47,22 @@ class Partner extends Model
         return $this->belongsTo(PaymentTerm::class);
     }
 
+    public function priceLevel(): BelongsTo
+    {
+        return $this->belongsTo(PriceLevel::class);
+    }
+
+    public function supplierPrices(): HasMany
+    {
+        return $this->hasMany(ProductSupplierPrice::class);
+    }
+
+    /** Tier used when quoting this customer; falls back to the default tier. */
+    public function effectivePriceLevelId(): ?int
+    {
+        return $this->price_level_id ?? PriceLevel::defaultId();
+    }
+
     public function salesOrders(): HasMany
     {
         return $this->hasMany(SalesOrder::class);

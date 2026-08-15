@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             ChartOfAccountSeeder::class,
             SettingSeeder::class,
             MasterDataSeeder::class,
+            PricingSeeder::class,
             HrSeeder::class,
             UserSeeder::class,
         ]);

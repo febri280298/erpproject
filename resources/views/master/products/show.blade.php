@@ -54,6 +54,136 @@
         </div>
 
         <div class="col-lg-8">
+            {{-- Daftar harga: jual per tingkat vs beli per supplier --}}
+            <div class="row row-cards mb-3">
+                <div class="col-md-6">
+                    <x-card title="Harga Jual per Tingkat" flush>
+                        @if($product->prices->isEmpty())
+                            <div class="card-body text-secondary">
+                                Belum diatur — memakai harga dasar {{ rupiah($product->sale_price) }}.
+                            </div>
+                        @else
+                            <div class="table-responsive">
+                                <table class="table table-sm table-vcenter card-table">
+                                    <thead>
+                                    <tr><th>Tingkat</th><th class="text-num">Harga</th><th class="text-num">Margin</th></tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($product->prices->sortBy(fn ($p) => $p->level?->sort_order) as $price)
+                                        <tr>
+                                            <td>
+                                                {{ $price->level?->name }}
+                                                @if($price->level?->is_default)
+                                                    <span class="badge bg-blue-lt ms-1">Default</span>
+                                                @endif
+                                                @if((float) $price->min_qty > 0)
+                                                    <div class="text-secondary small">min {{ fnum($price->min_qty) }}</div>
+                                                @endif
+                                            </td>
+                                            <td class="text-num fw-bold">{{ rupiah($price->price) }}</td>
+                                            <td class="text-num text-secondary">{{ fnum($price->marginPercent()) }}%</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </x-card>
+                </div>
+
+                <div class="col-md-6">
+                    <x-card title="Harga Beli per Supplier" flush>
+                        @if($product->supplierPrices->isEmpty())
+                            <div class="card-body text-secondary">
+                                Belum diatur — memakai harga dasar {{ rupiah($product->purchase_price) }}.
+                            </div>
+                        @else
+                            @php $cheapest = $product->cheapestSupplierPrice(); @endphp
+                            <div class="table-responsive">
+                                <table class="table table-sm table-vcenter card-table">
+                                    <thead>
+                                    <tr><th>Supplier</th><th class="text-num">Harga</th><th class="w-1"></th></tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($product->supplierPrices->sortBy('price') as $row)
+                                        <tr>
+                                            <td>
+                                                {{ $row->supplier?->name }}
+                                                @if($row->lead_time_days > 0)
+                                                    <div class="text-secondary small">{{ $row->lead_time_days }} hari</div>
+                                                @endif
+                                            </td>
+                                            <td class="text-num fw-bold">{{ rupiah($row->price) }}</td>
+                                            <td>
+                                                @if($row->is_preferred)
+                                                    <span class="badge bg-blue-lt">Utama</span>
+                                                @elseif($cheapest && $cheapest->id === $row->id)
+                                                    <span class="badge bg-green-lt">Termurah</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </x-card>
+                </div>
+            </div>
+
+            {{-- Riwayat perubahan harga --}}
+            <x-card title="Riwayat Perubahan Harga" flush class="mb-3">
+                <x-slot:actions>
+                    <span class="text-secondary small">{{ $histories->count() }} perubahan terakhir</span>
+                </x-slot:actions>
+
+                @if($histories->isEmpty())
+                    <div class="card-body">
+                        <x-empty icon="ti ti-history" title="Belum ada perubahan harga"
+                                 message="Riwayat terisi otomatis setiap harga beli atau harga jual diubah." />
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-sm table-vcenter card-table">
+                            <thead>
+                            <tr>
+                                <th>Waktu</th><th>Jenis</th><th>Untuk</th>
+                                <th class="text-num">Dari</th><th class="text-num">Menjadi</th>
+                                <th class="text-num">Selisih</th><th>Oleh</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($histories as $h)
+                                <tr>
+                                    <td class="text-secondary">{{ fdatetime($h->created_at) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ $h->price_type === 'purchase' ? 'orange' : 'azure' }}-lt">
+                                            {{ $h->typeLabel() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ $h->label }}
+                                        @if($h->source !== 'manual')
+                                            <div class="text-secondary small">{{ $h->notes }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="text-num text-secondary">{{ rupiah($h->old_price) }}</td>
+                                    <td class="text-num fw-bold">{{ rupiah($h->new_price) }}</td>
+                                    <td class="text-num text-{{ $h->directionColor() }}">
+                                        {{ $h->isIncrease() ? '+' : '' }}{{ rupiah($h->difference) }}
+                                        @if((float) $h->percent != 0)
+                                            <div class="small">{{ $h->isIncrease() ? '+' : '' }}{{ fnum($h->percent) }}%</div>
+                                        @endif
+                                    </td>
+                                    <td class="text-secondary">{{ $h->changer?->name ?? 'Sistem' }}</td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </x-card>
+
             <x-card title="Stok per Gudang" flush>
                 @if($product->stocks->isEmpty())
                     <div class="card-body">

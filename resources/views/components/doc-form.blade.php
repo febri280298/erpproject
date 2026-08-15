@@ -27,6 +27,8 @@
           products: {{ Js::from($products) }},
           rows: {{ Js::from($rows) }},
           priceField: '{{ $priceField }}',
+          partnerLevels: {{ Js::from($partnerLevels ?? []) }},
+          defaultLevelId: {{ Js::from($defaultPriceLevelId ?? null) }},
           discountAmount: {{ (float) old('discount_amount', $discountAmount) }},
           shippingCost: {{ (float) old('shipping_cost', $shippingCost) }}
       })"
@@ -49,6 +51,11 @@
         <div class="card-header">
             <h3 class="card-title">{{ $itemsTitle }}</h3>
             <div class="card-actions">
+                <span class="text-secondary small me-2" x-show="priceSourceLabel" x-text="priceSourceLabel"></span>
+                <button type="button" class="btn btn-sm" @click="repriceAll()" x-show="rows.some(r => r.product_id)"
+                        title="Ambil ulang harga sesuai mitra yang dipilih">
+                    <i class="ti ti-refresh me-1"></i> Perbarui Harga
+                </button>
                 <button type="button" class="btn btn-sm btn-primary" @click="addRow()">
                     <i class="ti ti-plus me-1"></i> Tambah Baris
                 </button>

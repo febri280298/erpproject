@@ -106,7 +106,37 @@ Sub-modul mengikuti induknya: mematikan **Pembelian** otomatis menonaktifkan
 
 **Laporan** — Penjualan, pembelian, persediaan, umur piutang, umur utang, produk terlaris.
 
-**Sistem** — Pengguna, peran & izin (148 permission, 8 peran), pengaturan perusahaan/akuntansi/operasional, format nomor dokumen, log aktivitas.
+**Sistem** — Pengguna, peran & izin (152 permission, 8 peran), pengaturan perusahaan/akuntansi/operasional, format nomor dokumen, log aktivitas.
+
+## Harga Bertingkat & Riwayat Harga
+
+Satu produk dapat memiliki **beberapa harga jual** (tingkat harga) dan **beberapa harga beli**
+(satu per supplier). Harga dasar pada produk tetap dipakai sebagai cadangan bila keduanya
+belum diisi, sehingga produk sederhana tetap bisa dijual tanpa pengaturan tambahan.
+
+**Harga jual per tingkat** — maksimal 10 tingkat, diatur di *Data Master → Tingkat Harga*
+(mis. Eceran, Grosir, Proyek, Reseller). Setiap customer dapat diberi tingkat harga bawaan;
+saat SO atau faktur dibuat, harga seluruh baris terisi otomatis mengikuti tingkat tersebut.
+
+**Harga beli per supplier** — daftar penawaran per produk berikut kode supplier, lead time,
+dan minimum order. Satu supplier dapat ditandai **Utama**, dan yang termurah ditandai otomatis.
+Saat PO dibuat, memilih supplier akan mengisi harga dari daftar tersebut.
+
+**Urutan pemakaian harga**
+
+| Dokumen | Urutan |
+|---|---|
+| PO / Faktur Pembelian | harga supplier terpilih → supplier utama → harga beli dasar |
+| SO / Faktur Penjualan | tingkat harga customer → tingkat default → harga jual dasar |
+
+**Riwayat harga** dicatat otomatis setiap harga benar-benar berubah — menyimpan harga lama,
+harga baru, selisih nominal & persen, siapa yang mengubah, dan sumbernya (`manual`, `import`,
+atau `receipt`). Semua penulisan harga melewati `PricingService`, jadi tidak ada jalur yang
+bisa mengubah harga tanpa meninggalkan jejak.
+
+> Saat penerimaan barang diposting, harga yang benar-benar dibayar ikut memperbarui daftar
+> harga supplier dan tercatat di riwayat dengan sumber `receipt` — daftar harga mengikuti
+> kenyataan tanpa perlu diketik ulang.
 
 ## Alur Transaksi & Jurnal
 

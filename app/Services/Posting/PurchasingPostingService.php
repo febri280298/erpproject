@@ -8,6 +8,7 @@ use App\Models\Purchasing\SupplierPayment;
 use App\Services\AccountMap;
 use App\Services\InventoryService;
 use App\Services\JournalService;
+use App\Services\PricingService;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -27,6 +28,7 @@ class PurchasingPostingService
         private readonly InventoryService $inventory,
         private readonly JournalService $journals,
         private readonly AccountMap $accounts,
+        private readonly PricingService $pricing,
     ) {}
 
     public function postGoodsReceipt(GoodsReceipt $receipt): void
@@ -55,6 +57,16 @@ class PurchasingPostingService
 
                 if ($item->product?->isStockable()) {
                     $goodsValue += $item->lineTotal();
+                }
+
+                // Keep the supplier price list honest: record what was actually paid.
+                if ($item->product) {
+                    $this->pricing->noteReceiptCost(
+                        $item->product,
+                        $receipt->partner_id,
+                        (float) $item->unit_price,
+                        $date,
+                    );
                 }
 
                 // Roll the received quantity up to the originating PO line.

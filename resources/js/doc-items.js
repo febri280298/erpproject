@@ -19,10 +19,35 @@ export default function docItems(config = {}) {
         discountAmount: parseNum(config.discountAmount ?? 0),
         shippingCost: parseNum(config.shippingCost ?? 0),
 
+        /** Multi-price lookup: customer tier map and the fallback tier. */
+        partnerLevels: config.partnerLevels ?? {},
+        defaultLevelId: config.defaultLevelId ?? null,
+        partnerId: '',
+        priceSourceLabel: '',
+
+        get isPurchase() {
+            return this.priceField === 'purchase_price';
+        },
+
         init() {
             const incoming = Array.isArray(config.rows) ? config.rows : [];
             this.rows = incoming.map((r) => this.normalizeRow(r));
             if (this.rows.length === 0) this.addRow();
+
+            // Watch the partner picker in the document header so prices follow
+            // whichever supplier / customer is chosen, without wiring each view.
+            this.partnerSelect = this.$root.querySelector('[name="partner_id"]');
+
+            if (this.partnerSelect) {
+                this.partnerId = this.partnerSelect.value;
+                this.describeSource();
+
+                this.partnerSelect.addEventListener('change', () => {
+                    this.partnerId = this.partnerSelect.value;
+                    this.describeSource();
+                    this.repriceAll();
+                });
+            }
         },
 
         normalizeRow(r = {}) {
@@ -63,9 +88,50 @@ export default function docItems(config = {}) {
             row.description = p.name ?? '';
             row.uom = p.uom ?? '';
             if (this.withPrice) {
-                row.unit_price = parseNum(p[this.priceField] ?? 0);
+                row.unit_price = this.priceFor(p);
                 row.tax_rate = parseNum(p.tax_rate ?? 0);
             }
+        },
+
+        /**
+         * Resolves a product's price for the partner currently selected:
+         * supplier price for purchases, tier price for sales, and the product's
+         * base price when neither is set.
+         */
+        priceFor(product) {
+            if (!product) return 0;
+
+            if (this.isPurchase) {
+                const supplierPrice = parseNum(product.supplier_prices?.[String(this.partnerId)] ?? 0);
+                return supplierPrice > 0 ? supplierPrice : parseNum(product.purchase_price ?? 0);
+            }
+
+            const levelId = this.partnerLevels?.[String(this.partnerId)] ?? this.defaultLevelId;
+            const tierPrice = parseNum(product.prices?.[String(levelId)] ?? 0);
+
+            return tierPrice > 0 ? tierPrice : parseNum(product.sale_price ?? 0);
+        },
+
+        /** Re-reads every row's price — used after the partner changes. */
+        repriceAll() {
+            if (!this.withPrice) return;
+
+            this.rows.forEach((row) => {
+                if (!row.product_id) return;
+                const p = this.product(row.product_id);
+                if (p) row.unit_price = this.priceFor(p);
+            });
+        },
+
+        describeSource() {
+            if (!this.partnerId) {
+                this.priceSourceLabel = '';
+                return;
+            }
+
+            this.priceSourceLabel = this.isPurchase
+                ? 'Harga mengikuti daftar harga supplier'
+                : 'Harga mengikuti tingkat harga customer';
         },
 
         lineGross(row) {
