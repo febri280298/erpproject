@@ -31,6 +31,7 @@
           defaultLevelId: {{ Js::from($defaultPriceLevelId ?? null) }},
           dppRatio: {{ Js::from($dppRatio ?? 1) }},
           dppRatioLabel: {{ Js::from($dppRatioLabel ?? '') }},
+          invoiceType: {{ Js::from($invoiceType ?? 'ppn') }},
           discountAmount: {{ (float) old('discount_amount', $discountAmount) }},
           shippingCost: {{ (float) old('shipping_cost', $shippingCost) }}
       })"
@@ -156,7 +157,7 @@
                             <td class="text-num" x-text="money(subtotal)"></td>
                         </tr>
                         @if($showTax)
-                            <tr x-show="usesDppOther" x-cloak>
+                            <tr x-show="usesDppOther && taxTotal > 0" x-cloak>
                                 <td class="text-secondary">
                                     DPP Nilai Lain <span class="text-muted" x-text="'(' + dppRatioLabel + ')'"></span>
                                 </td>
@@ -192,6 +193,17 @@
                         <tr class="fw-bold border-top">
                             <td>Total</td>
                             <td class="text-num fs-3" x-text="'Rp ' + money(grandTotal)"></td>
+                        </tr>
+                        {{-- PPh 23 dipotong customer, jadi yang diterima lebih kecil dari total --}}
+                        <tr x-show="whtAmount > 0" x-cloak>
+                            <td class="text-secondary">
+                                PPh 23 <span class="text-muted" x-text="'(' + whtRate + '%)'"></span>
+                            </td>
+                            <td class="text-num text-danger" x-text="'(' + money(whtAmount) + ')'"></td>
+                        </tr>
+                        <tr x-show="whtAmount > 0" x-cloak class="fw-bold">
+                            <td>Dibayar Customer</td>
+                            <td class="text-num" x-text="'Rp ' + money(grandTotal - whtAmount)"></td>
                         </tr>
                         @endif
                     </table>

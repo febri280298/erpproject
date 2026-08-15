@@ -161,6 +161,36 @@ HPP mengikuti **pergerakan fisik barang** (surat jalan), bukan faktur — sehing
 dan kartu stok selalu konsisten. Transfer antar gudang tidak menghasilkan jurnal karena
 nilai persediaan total tidak berubah.
 
+### Tipe Faktur: PPN, Non-PPN, dan Jasa
+
+Setiap faktur penjualan memiliki tipe yang menentukan perlakuan pajaknya:
+
+| Tipe | Perlakuan PPN | Judul cetakan |
+|---|---|---|
+| **PPN** | Tiap baris memakai tarif pajak produknya sendiri | Faktur Pajak |
+| **Non-PPN** | Seluruh baris dipaksa 0% | Invoice |
+| **Jasa** | Ber-PPN, ditambah potongan PPh 23 | Invoice Jasa |
+
+Perlakuan PPN tiap produk diatur di *Data Master → Produk → Perlakuan PPN*, dan
+terlihat sebagai badge pada daftar produk. Faktur bertipe PPN **menghormati**
+setelan itu: produk yang memang bebas PPN tetap 0% walau fakturnya ber-PPN.
+Sebaliknya faktur Non-PPN menolkan semua baris apa pun setelan produknya —
+dipaksa di sisi server, bukan hanya di peramban.
+
+**PPh 23 pada faktur jasa.** Customer memotong PPh 23 (bawaan 2%) dari nilai jasa
+di luar PPN dan menyetorkannya sendiri, sehingga yang diterima lebih kecil dari
+total faktur. Potongan itu bukan beban melainkan kredit pajak:
+
+```
+Dr Piutang Usaha        692.150     ← total dikurangi potongan
+Dr Uang Muka PPh 23      12.700     ← 2% × 635.000, kredit pajak
+Cr Pendapatan Penjualan            635.000
+Cr PPN Keluaran                     69.850
+```
+
+Sisa tagihan yang dipantau sistem juga sudah dikurangi potongan tersebut, jadi
+faktur tetap dianggap lunas ketika customer membayar sebesar nilai bersihnya.
+
 ### PPN & DPP Nilai Lain
 
 Perhitungan pajak per baris:
@@ -188,8 +218,12 @@ Sejak 2025 tarif PPN 12%, tetapi untuk barang/jasa umum dasar pengenaannya adala
 > agar 11/12 tidak kehilangan presisi dan pajaknya tidak meleset beberapa sen.
 
 Bawaannya **tidak aktif** supaya angka pada instalasi yang sudah berjalan tidak
-berubah sendiri. Saat diaktifkan, tarif pajak default harus diubah menjadi 12% —
-sistem memberi peringatan bila belum. Baris berpajak nol tidak terpengaruh rasio.
+berubah sendiri. Baris berpajak nol tidak terpengaruh rasio.
+
+> **Rasio dan tarif harus berpasangan.** Rasio 11/12 di atas tarif 11% menghasilkan
+> 10,08% — pajak kurang bayar tanpa gejala apa pun di layar. Karena itu sistem
+> **menolak** mengaktifkan DPP Nilai Lain selama pajak default belum 12%, dan
+> menampilkan peringatan merah di dashboard bila kombinasi salah itu sempat terjadi.
 
 ### Satu Faktur untuk Beberapa Surat Jalan
 

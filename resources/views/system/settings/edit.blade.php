@@ -157,6 +157,9 @@
                                       :value="$settings['dpp_ratio_numerator'] ?? 11" col="col-md-3" />
                         <x-form.input name="dpp_ratio_denominator" label="Penyebut Rasio" type="number"
                                       :value="$settings['dpp_ratio_denominator'] ?? 12" col="col-md-3" />
+                        <x-form.input name="wht_service_rate" label="Tarif PPh 23 Jasa" type="number" step="0.01"
+                                      :value="$settings['wht_service_rate'] ?? 2" col="col-md-3" suffix="%"
+                                      help="Tarif bawaan saat membuat faktur bertipe Jasa." />
 
                         <div class="col-md-6" x-show="aktif" x-cloak>
                             <div class="alert alert-info mb-0 py-2">

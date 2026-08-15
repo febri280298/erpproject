@@ -4,6 +4,23 @@
 @section('pretitle', 'Ringkasan ' . now()->translatedFormat('F Y'))
 
 @section('content')
+    @if($taxMisconfigured)
+        <div class="alert alert-danger" role="alert">
+            <div class="d-flex">
+                <div><i class="ti ti-alert-triangle me-2"></i></div>
+                <div>
+                    <h4 class="alert-title">Perhitungan pajak tidak sesuai</h4>
+                    <div>{{ $taxMisconfigured }}</div>
+                    @can('setting.edit')
+                        <div class="mt-2">
+                            <a href="{{ route('settings.edit') }}#tax" class="btn btn-sm btn-danger">Perbaiki pengaturan pajak</a>
+                        </div>
+                    @endcan
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if(count($missingAccounts) > 0 && $modules->enabled('accounting'))
         <div class="alert alert-warning" role="alert">
             <h4 class="alert-title">Pemetaan akun belum lengkap</h4>

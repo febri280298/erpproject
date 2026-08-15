@@ -293,9 +293,14 @@ class SalesPostingService
             $invoice->load('items');
             $date = $invoice->date->toDateString();
 
+            // PPh 23 dipotong customer, jadi piutang hanya sebesar yang akan
+            // benar-benar diterima; potongannya menjadi kredit pajak kami.
+            $wht = (float) $invoice->wht_amount;
+
             $this->journals->post(
                 [
-                    ['account_id' => $this->accounts->id('acc_receivable'), 'debit' => (float) $invoice->total, 'partner_id' => $invoice->partner_id],
+                    ['account_id' => $this->accounts->id('acc_receivable'), 'debit' => $invoice->amountDue(), 'partner_id' => $invoice->partner_id],
+                    ['account_id' => $this->accounts->id('acc_wht_prepaid'), 'debit' => $wht, 'partner_id' => $invoice->partner_id],
                     ['account_id' => $this->accounts->id('acc_sales_discount'), 'debit' => (float) $invoice->discount_amount],
                     ['account_id' => $this->accounts->id('acc_sales'), 'credit' => (float) $invoice->subtotal],
                     ['account_id' => $this->accounts->id('acc_freight_out'), 'credit' => (float) $invoice->shipping_cost],

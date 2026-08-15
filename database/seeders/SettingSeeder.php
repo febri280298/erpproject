@@ -17,6 +17,7 @@ class SettingSeeder extends Seeder
         'use_dpp_nilai_lain' => ['0', 'boolean'],
         'dpp_ratio_numerator' => ['11', 'number'],
         'dpp_ratio_denominator' => ['12', 'number'],
+        'wht_service_rate' => ['2', 'number'],
     ];
 
     public function run(): void

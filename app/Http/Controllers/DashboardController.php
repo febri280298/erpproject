@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Hr\Employee;
 use App\Models\Inventory\Stock;
 use App\Models\Master\Product;
+use App\Models\Master\Tax;
 use App\Models\Purchasing\PurchaseInvoice;
 use App\Models\Purchasing\PurchaseOrder;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesOrder;
 use App\Services\AccountMap;
 use App\Services\InventoryService;
+use App\Services\LineItemCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -38,6 +40,7 @@ class DashboardController extends Controller
                 ->whereDate('due_date', '<', now())->orderBy('due_date')->limit(6)->get(),
             'pendingApprovals' => $this->pendingApprovals(),
             'missingAccounts' => $this->accounts->missing(),
+            'taxMisconfigured' => $this->taxMisconfiguration(),
         ]);
     }
 
@@ -119,6 +122,34 @@ class DashboardController extends Controller
             ->orderBy('quantity')
             ->limit(8)
             ->get();
+    }
+
+    /**
+     * DPP Nilai Lain yang aktif berpasangan dengan tarif selain 12% menghasilkan
+     * pajak kurang bayar tanpa gejala di layar, jadi kondisinya diangkat ke
+     * dashboard agar tidak berjalan diam-diam berbulan-bulan.
+     */
+    private function taxMisconfiguration(): ?string
+    {
+        $calculator = app(LineItemCalculator::class);
+
+        if (! $calculator->isDppOtherEnabled()) {
+            return null;
+        }
+
+        $tarif = (float) Tax::where('is_default', true)->value('rate');
+
+        if (abs($tarif - 12) < 0.01) {
+            return null;
+        }
+
+        return sprintf(
+            'DPP Nilai Lain (%s) aktif, tetapi pajak default masih %s%%. '
+            .'Pajak yang dihitung menjadi %s%% — kurang dari seharusnya.',
+            $calculator->ratioLabel(),
+            fnum($tarif),
+            fnum($tarif * $calculator->ratio()),
+        );
     }
 
     private function pendingApprovals(): array

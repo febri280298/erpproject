@@ -25,8 +25,9 @@
                         <x-form.select name="product_category_id" label="Kategori" :options="$categories"
                                        :value="$product->product_category_id" col="col-md-4" />
                         <x-form.select name="uom_id" label="Satuan" :options="$uoms" :value="$product->uom_id" col="col-md-4" />
-                        <x-form.select name="tax_id" label="Pajak" :options="$taxes" :value="$product->tax_id" col="col-md-4"
-                                       placeholder="— Tanpa pajak —" />
+                        <x-form.select name="tax_id" label="Perlakuan PPN" :options="$taxes" :value="$product->tax_id"
+                                       col="col-md-4" placeholder="— Bebas PPN (0%) —"
+                                       help="Dipakai otomatis saat produk ini dimasukkan ke faktur." />
 
                         <x-form.textarea name="description" label="Deskripsi" :value="$product->description" />
                     </div>

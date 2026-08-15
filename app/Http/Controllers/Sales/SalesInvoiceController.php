@@ -5,16 +5,19 @@ namespace App\Http\Controllers\Sales;
 use App\Http\Controllers\Concerns\LineItemDocumentController;
 use App\Models\Master\Partner;
 use App\Models\Master\Product;
+use App\Models\Master\Tax;
 use App\Models\Sales\DeliveryOrder;
 use App\Models\Sales\SalesInvoice;
 use App\Models\Sales\SalesOrder;
 use App\Services\DocumentNumberService;
 use App\Services\LineItemCalculator;
 use App\Services\Posting\SalesPostingService;
+use App\Services\SettingService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -55,12 +58,43 @@ class SalesInvoiceController extends LineItemDocumentController
             'terms' => ['nullable', 'string', 'max:2000'],
             'delivery_order_ids' => ['nullable', 'array'],
             'delivery_order_ids.*' => ['integer', 'exists:delivery_orders,id'],
+            'invoice_type' => ['required', Rule::in(array_keys(SalesInvoice::TYPES))],
+            'wht_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ];
     }
 
     protected function headerExcept(): array
     {
         return ['items', 'delivery_order_ids'];
+    }
+
+    /** Faktur non-PPN tidak boleh membawa pajak, apa pun isi kiriman formnya. */
+    protected function prepareItems(array $items, array $data): array
+    {
+        if (($data['invoice_type'] ?? null) !== SalesInvoice::TYPE_NON_PPN) {
+            return $items;
+        }
+
+        return array_map(fn (array $row) => array_merge($row, ['tax_rate' => 0]), $items);
+    }
+
+    /**
+     * Menghitung potongan PPh 23 dari nilai jasa.
+     *
+     * Dasarnya adalah subtotal (di luar PPN), sesuai ketentuan PPh 23. Hanya
+     * faktur bertipe Jasa yang dipotong; tipe lain dinolkan agar berganti tipe
+     * tidak meninggalkan potongan lama.
+     */
+    private function applyWithholding(Model $document, array $data): void
+    {
+        $rate = ($data['invoice_type'] ?? null) === SalesInvoice::TYPE_JASA
+            ? (float) ($data['wht_rate'] ?? 0)
+            : 0.0;
+
+        $document->forceFill([
+            'wht_rate' => $rate,
+            'wht_amount' => round((float) $document->subtotal * $rate / 100, 2),
+        ])->saveQuietly();
     }
 
     /**
@@ -71,6 +105,8 @@ class SalesInvoiceController extends LineItemDocumentController
      */
     protected function afterSave(Model $document, array $data): void
     {
+        $this->applyWithholding($document, $data);
+
         $ids = $data['delivery_order_ids'] ?? [];
 
         // Saat faktur draft diubah, lepaskan dulu tautan lamanya.
@@ -99,6 +135,9 @@ class SalesInvoiceController extends LineItemDocumentController
     protected function formData(?Model $document = null): array
     {
         return [
+            'invoiceTypes' => SalesInvoice::TYPES,
+            'defaultWhtRate' => (float) app(SettingService::class)->get('wht_service_rate', 2),
+            'defaultTaxRate' => (float) Tax::defaultRate(),
             'customers' => Partner::customers()->active()->orderBy('name')->pluck('name', 'id'),
             'openOrders' => SalesOrder::query()
                 ->whereIn('status', ['confirmed', 'partial', 'delivered'])

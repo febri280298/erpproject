@@ -82,6 +82,7 @@
                         <th>Nama Produk</th>
                         <th>Kategori</th>
                         <th>Tipe</th>
+                        <th>PPN</th>
                         <th class="text-num">Harga Beli</th>
                         <th class="text-num">Harga Jual</th>
                         <th class="text-num">Stok</th>
@@ -100,6 +101,12 @@
                             <td>
                                 <span class="badge bg-{{ $product->isStockable() ? 'blue' : 'purple' }}-lt">
                                     {{ $product->isStockable() ? 'Barang' : 'Jasa' }}
+                                </span>
+                            </td>
+                            <td>
+                                @php $tarif = (float) ($product->tax?->rate ?? 0); @endphp
+                                <span class="badge bg-{{ $tarif > 0 ? 'green' : 'secondary' }}-lt">
+                                    {{ $tarif > 0 ? 'PPN '.fnum($tarif).'%' : 'Bebas PPN' }}
                                 </span>
                             </td>
                             <td class="text-num">{{ rupiah($product->purchase_price) }}</td>

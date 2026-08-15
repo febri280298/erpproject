@@ -22,6 +22,7 @@ class ChartOfAccountSeeder extends Seeder
         ['1140', 'Persediaan Barang', 'asset', 'inventory', 'debit', true, '1100'],
         ['1150', 'PPN Masukan', 'asset', 'tax', 'debit', true, '1100'],
         ['1160', 'Biaya Dibayar di Muka', 'asset', null, 'debit', true, '1100'],
+        ['1170', 'Uang Muka PPh 23', 'asset', 'tax', 'debit', true, '1100'],
         ['1200', 'Aset Tetap', 'asset', null, 'debit', false, '1000'],
         ['1210', 'Tanah dan Bangunan', 'asset', 'fixed', 'debit', true, '1200'],
         ['1220', 'Kendaraan', 'asset', 'fixed', 'debit', true, '1200'],

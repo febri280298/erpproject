@@ -19,8 +19,23 @@ class SalesInvoice extends Model
 {
     use CalculatesTotals, HasDocumentStatus, LogsActivity;
 
+    /** Faktur dengan PPN; tiap baris memakai tarif pajak produknya sendiri. */
+    public const TYPE_PPN = 'ppn';
+
+    /** Tanpa PPN sama sekali — seluruh baris dipaksa 0%. */
+    public const TYPE_NON_PPN = 'non_ppn';
+
+    /** Jasa: tetap ber-PPN, tetapi nilainya dipotong PPh 23 oleh customer. */
+    public const TYPE_JASA = 'jasa';
+
+    public const TYPES = [
+        self::TYPE_PPN => 'PPN',
+        self::TYPE_NON_PPN => 'Non-PPN',
+        self::TYPE_JASA => 'Jasa',
+    ];
+
     protected $fillable = [
-        'invoice_no', 'date', 'due_date', 'partner_id', 'sales_order_id',
+        'invoice_no', 'invoice_type', 'wht_rate', 'wht_amount', 'date', 'due_date', 'partner_id', 'sales_order_id',
         'subtotal', 'dpp_other_amount', 'discount_amount', 'shipping_cost', 'tax_amount', 'total',
         'paid_amount', 'credit_amount', 'status', 'notes', 'terms', 'created_by', 'posted_at',
     ];
@@ -37,6 +52,8 @@ class SalesInvoice extends Model
         'total' => 'decimal:2',
         'paid_amount' => 'decimal:2',
         'credit_amount' => 'decimal:2',
+        'wht_rate' => 'decimal:4',
+        'wht_amount' => 'decimal:2',
     ];
 
     public function items(): HasMany
@@ -113,15 +130,43 @@ class SalesInvoice extends Model
         return $this->hasMany(DeliveryOrder::class);
     }
 
+    public function typeLabel(): string
+    {
+        return self::TYPES[$this->invoice_type] ?? 'PPN';
+    }
+
+    public function typeColor(): string
+    {
+        return match ($this->invoice_type) {
+            self::TYPE_NON_PPN => 'secondary',
+            self::TYPE_JASA => 'purple',
+            default => 'blue',
+        };
+    }
+
+    public function isService(): bool
+    {
+        return $this->invoice_type === self::TYPE_JASA;
+    }
+
+    /**
+     * Jumlah yang benar-benar akan diterima: total faktur dikurangi PPh 23
+     * yang dipotong dan disetorkan sendiri oleh customer.
+     */
+    public function amountDue(): float
+    {
+        return round((float) $this->total - (float) $this->wht_amount, 2);
+    }
+
     /**
      * Sisa tagihan setelah pembayaran dan nota kredit retur.
      *
      * Menimpa versi di CalculatesTotals karena hanya faktur penjualan yang
-     * dapat dikurangi oleh nota kredit.
+     * dapat dikurangi nota kredit dan potongan PPh 23.
      */
     public function outstandingAmount(): float
     {
-        return round((float) $this->total - (float) $this->paid_amount - (float) $this->credit_amount, 2);
+        return round($this->amountDue() - (float) $this->paid_amount - (float) $this->credit_amount, 2);
     }
 
     public function syncPaymentStatus(): void

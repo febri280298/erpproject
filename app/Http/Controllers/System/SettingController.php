@@ -103,6 +103,7 @@ class SettingController extends Controller
             'use_dpp_nilai_lain' => ['boolean'],
             'dpp_ratio_numerator' => ['required_if:use_dpp_nilai_lain,1', 'integer', 'min:1', 'max:100'],
             'dpp_ratio_denominator' => ['required_if:use_dpp_nilai_lain,1', 'integer', 'min:1', 'max:100'],
+            'wht_service_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ], [], [
             'dpp_ratio_numerator' => 'Pembilang rasio',
             'dpp_ratio_denominator' => 'Penyebut rasio',
@@ -115,21 +116,34 @@ class SettingController extends Controller
                 'Pembilang rasio tidak boleh melebihi penyebutnya — DPP Nilai Lain selalu lebih kecil dari harga jual.');
         }
 
+        /*
+         * Ditolak, bukan sekadar diperingatkan: rasio 11/12 dipasangkan dengan
+         * tarif 11% menghasilkan 10,08% — pajak kurang bayar tanpa gejala yang
+         * kasat mata di layar. Kombinasi ini tidak boleh bisa tersimpan.
+         */
+        $tarifDefault = (float) Tax::where('is_default', true)->value('rate');
+
+        if ($aktif && abs($tarifDefault - 12) >= 0.01) {
+            return back()->withInput()->with('error', sprintf(
+                'DPP Nilai Lain tidak dapat diaktifkan selama tarif pajak default masih %s%%. '
+                .'Rasio %d/%d atas tarif %s%% menghasilkan %s%% — kurang dari yang seharusnya. '
+                .'Ubah pajak default menjadi 12%% di Data Master → Pajak terlebih dahulu.',
+                fnum($tarifDefault),
+                $data['dpp_ratio_numerator'],
+                $data['dpp_ratio_denominator'],
+                fnum($tarifDefault),
+                fnum($tarifDefault * $data['dpp_ratio_numerator'] / $data['dpp_ratio_denominator']),
+            ));
+        }
+
         $this->settings->setMany([
             'use_dpp_nilai_lain' => $aktif,
             'dpp_ratio_numerator' => (int) $data['dpp_ratio_numerator'],
             'dpp_ratio_denominator' => (int) $data['dpp_ratio_denominator'],
+            'wht_service_rate' => (float) ($data['wht_service_rate'] ?? 2),
         ], 'accounting');
 
-        // Tarif pajak default harus 12% agar hasilnya setara 11% dari harga jual.
-        $tarifDefault = (float) Tax::where('is_default', true)->value('rate');
-        $peringatan = ($aktif && abs($tarifDefault - 12) >= 0.01)
-            ? " Perhatian: tarif pajak default masih {$tarifDefault}%. Ubah menjadi 12% di Data Master → Pajak, "
-                .'karena DPP Nilai Lain dirancang untuk dipasangkan dengan tarif 12%.'
-            : '';
-
-        return back()->with($peringatan ? 'warning' : 'success',
-            'Pengaturan pajak berhasil disimpan.'.$peringatan);
+        return back()->with('success', 'Pengaturan pajak berhasil disimpan.');
     }
 
     public function updateOperations(Request $request): RedirectResponse

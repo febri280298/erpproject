@@ -112,6 +112,16 @@
                 <tr class="fw-bold" style="border-top:1pt solid #000">
                     <td>TOTAL</td><td class="text-num">{{ rupiah($document->total, 2) }}</td>
                 </tr>
+                {{-- PPh 23 disetor sendiri oleh customer, jadi yang ditransfer lebih kecil --}}
+                @if((float) ($document->wht_amount ?? 0) > 0)
+                    <tr>
+                        <td class="text-secondary">PPh 23 ({{ fnum($document->wht_rate) }}%)</td>
+                        <td class="text-num">({{ rupiah($document->wht_amount, 2, false) }})</td>
+                    </tr>
+                    <tr class="fw-bold" style="border-top:.5pt solid #666">
+                        <td>DIBAYAR</td><td class="text-num">{{ rupiah($document->amountDue(), 2) }}</td>
+                    </tr>
+                @endif
             </table>
         </div>
     </div>

@@ -93,7 +93,7 @@ abstract class LineItemDocumentController extends Controller
         $data = $request->validate(array_merge($this->headerRules(), $this->itemRules()));
 
         $document = DB::transaction(function () use ($data) {
-            $rows = $this->calculator->calculate($data['items']);
+            $rows = $this->calculator->calculate($this->prepareItems($data['items'], $data));
             $totals = $this->calculator->totals(
                 $rows,
                 (float) ($data['discount_amount'] ?? 0),
@@ -157,7 +157,7 @@ abstract class LineItemDocumentController extends Controller
         $data = $request->validate(array_merge($this->headerRules($document), $this->itemRules()));
 
         DB::transaction(function () use ($document, $data) {
-            $rows = $this->calculator->calculate($data['items']);
+            $rows = $this->calculator->calculate($this->prepareItems($data['items'], $data));
             $totals = $this->calculator->totals(
                 $rows,
                 (float) ($data['discount_amount'] ?? 0),
@@ -216,6 +216,19 @@ abstract class LineItemDocumentController extends Controller
     protected function headerExcept(): array
     {
         return ['items'];
+    }
+
+    /**
+     * Hook: menyesuaikan baris sebelum dihitung, mis. memaksa tarif pajak nol
+     * pada dokumen non-PPN. Wajib di sisi server karena aturan di peramban
+     * dapat dilewati dengan mengirim form secara langsung.
+     *
+     * @param  array<int,array<string,mixed>>  $items
+     * @return array<int,array<string,mixed>>
+     */
+    protected function prepareItems(array $items, array $data): array
+    {
+        return $items;
     }
 
     /** Hook: dijalankan di dalam transaksi setelah item tersimpan. */

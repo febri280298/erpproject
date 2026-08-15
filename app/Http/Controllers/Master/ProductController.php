@@ -29,7 +29,7 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $products = Product::query()
-            ->with(['category:id,name', 'uom:id,code'])
+            ->with(['category:id,name', 'uom:id,code', 'tax:id,name,rate'])
             ->withSum('stocks as on_hand', 'quantity')
             ->search($request->query('q'))
             ->when($request->filled('category'), fn ($q) => $q->where('product_category_id', $request->query('category')))
@@ -256,8 +256,13 @@ class ProductController extends Controller
             'product' => $product,
             'categories' => ProductCategory::active()->orderBy('name')->pluck('name', 'id'),
             'uoms' => Uom::active()->orderBy('code')->pluck('name', 'id'),
-            'taxes' => Tax::active()->orderBy('code')->get()
-                ->mapWithKeys(fn (Tax $t) => [$t->id => $t->name.' ('.fnum($t->rate).'%)']),
+            // Label menyebut perlakuannya, bukan hanya nama pajaknya, agar
+            // terlihat jelas mana produk kena PPN dan mana yang bebas.
+            'taxes' => Tax::active()->orderBy('rate')->get()
+                ->mapWithKeys(fn (Tax $t) => [
+                    $t->id => ((float) $t->rate > 0 ? 'Kena PPN' : 'Bebas PPN')
+                        .' — '.$t->name.' ('.fnum($t->rate).'%)',
+                ]),
             'priceLevels' => PriceLevel::active()->ordered()->get(),
             // Keyed so the form can look a stored tier price up by level id.
             'salePrices' => $product->prices->keyBy('price_level_id'),

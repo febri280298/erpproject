@@ -83,6 +83,16 @@
                     <dd class="col-7">{{ fdate($document->date) }}</dd>
                     <dt class="col-5 text-secondary">Jatuh Tempo</dt>
                     <dd class="col-7 {{ $document->isOverdue() ? 'text-danger fw-bold' : '' }}">{{ fdate($document->due_date) }}</dd>
+                    <dt class="col-5 text-secondary">Tipe Faktur</dt>
+                    <dd class="col-7">
+                        <span class="badge bg-{{ $document->typeColor() }}-lt">{{ $document->typeLabel() }}</span>
+                    </dd>
+                    @if((float) $document->wht_amount > 0)
+                        <dt class="col-5 text-secondary">PPh 23 ({{ fnum($document->wht_rate) }}%)</dt>
+                        <dd class="col-7 text-danger">({{ rupiah($document->wht_amount) }})</dd>
+                        <dt class="col-5 text-secondary">Dibayar Customer</dt>
+                        <dd class="col-7 fw-bold">{{ rupiah($document->amountDue()) }}</dd>
+                    @endif
                     <dt class="col-5 text-secondary">Pelanggan</dt>
                     <dd class="col-7"><a href="{{ route('partners.show', $document->partner_id) }}">{{ $document->customer?->name }}</a></dd>
                     <dt class="col-5 text-secondary">Pesanan</dt>

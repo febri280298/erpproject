@@ -24,6 +24,7 @@ export default function docItems(config = {}) {
         defaultLevelId: config.defaultLevelId ?? null,
         partnerId: '',
         priceSourceLabel: '',
+        invoiceType: config.invoiceType ?? 'ppn',
 
         /** Rasio DPP Nilai Lain; 1 berarti fitur tidak aktif. */
         dppRatio: config.dppRatio ?? 1,
@@ -56,6 +57,37 @@ export default function docItems(config = {}) {
                     this.repriceAll();
                 });
             }
+
+            // Tipe faktur mengatur perlakuan PPN seluruh baris sekaligus.
+            this.typeSelect = this.$root.querySelector('[name="invoice_type"]');
+
+            if (this.typeSelect) {
+                this.invoiceType = this.typeSelect.value;
+
+                this.typeSelect.addEventListener('change', () => {
+                    this.invoiceType = this.typeSelect.value;
+                    this.applyInvoiceType();
+                });
+            }
+        },
+
+        /**
+         * Non-PPN menolkan pajak seluruh baris. PPN dan Jasa mengembalikan tarif
+         * milik produknya masing-masing — produk yang memang bebas PPN tetap 0%
+         * walau fakturnya bertipe PPN.
+         */
+        applyInvoiceType() {
+            this.rows.forEach((row) => {
+                if (!row.product_id) return;
+
+                if (this.invoiceType === 'non_ppn') {
+                    row.tax_rate = 0;
+                    return;
+                }
+
+                const product = this.product(row.product_id);
+                row.tax_rate = parseNum(product?.tax_rate ?? 0);
+            });
         },
 
         normalizeRow(r = {}) {
@@ -97,7 +129,8 @@ export default function docItems(config = {}) {
             row.uom = p.uom ?? '';
             if (this.withPrice) {
                 row.unit_price = this.priceFor(p);
-                row.tax_rate = parseNum(p.tax_rate ?? 0);
+                // Faktur non-PPN menolkan pajak apa pun tarif produknya.
+                row.tax_rate = this.invoiceType === 'non_ppn' ? 0 : parseNum(p.tax_rate ?? 0);
             }
         },
 
@@ -189,6 +222,20 @@ export default function docItems(config = {}) {
 
         get taxTotal() {
             return round(this.rows.reduce((sum, r) => sum + this.lineTax(r), 0));
+        },
+
+        /** Tarif PPh 23 dibaca dari input di header; kosong bila bukan faktur jasa. */
+        get whtRate() {
+            if (this.invoiceType !== 'jasa') return 0;
+
+            const input = this.$root.querySelector('[name="wht_rate"]');
+
+            return input ? parseNum(input.value) : 0;
+        },
+
+        /** Dasar PPh 23 adalah nilai jasa di luar PPN. */
+        get whtAmount() {
+            return round((this.subtotal * this.whtRate) / 100);
         },
 
         get grandTotal() {

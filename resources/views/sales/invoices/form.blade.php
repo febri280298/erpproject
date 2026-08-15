@@ -43,6 +43,17 @@
                 @endforeach
             @endisset
 
+            {{-- Tipe faktur menentukan perlakuan PPN seluruh baris sekaligus --}}
+            <x-form.select name="invoice_type" label="Tipe Faktur" :options="$invoiceTypes"
+                           :value="$document->invoice_type ?? old('invoice_type', 'ppn')"
+                           required col="col-md-3" :placeholder="false"
+                           help="Non-PPN menolkan pajak semua baris." />
+
+            <x-form.input name="wht_rate" label="PPh 23" type="number" step="0.01"
+                          :value="$document->wht_rate ?? $defaultWhtRate" col="col-md-3" suffix="%"
+                          x-bind:disabled="invoiceType !== 'jasa'"
+                          help="Dipotong customer dari nilai jasa, hanya untuk tipe Jasa." />
+
             <x-form.input name="date" label="Tanggal Faktur" type="date"
                           :value="optional($document?->date)->toDateString() ?? now()->toDateString()" required col="col-md-3" />
             <x-form.input name="due_date" label="Jatuh Tempo" type="date"

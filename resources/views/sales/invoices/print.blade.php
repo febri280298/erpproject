@@ -1,7 +1,11 @@
 @extends('layouts.print')
 
 @section('title', 'Faktur ' . $document->invoice_no)
-@section('doc-title', 'Faktur Penjualan')
+@section('doc-title', match($document->invoice_type) {
+    'non_ppn' => 'Invoice',
+    'jasa' => 'Invoice Jasa',
+    default => 'Faktur Pajak',
+})
 @section('doc-subtitle', $document->invoice_no)
 
 @section('content')

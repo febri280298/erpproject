@@ -22,6 +22,7 @@ class AccountMap
         'acc_grni' => ['Penerimaan Barang Belum Ditagih', '2120'],
         'acc_tax_input' => ['PPN Masukan', '1150'],
         'acc_tax_output' => ['PPN Keluaran', '2130'],
+        'acc_wht_prepaid' => ['Uang Muka PPh 23', '1170'],
         'acc_sales' => ['Pendapatan Penjualan', '4110'],
         'acc_sales_discount' => ['Potongan Penjualan', '4120'],
         'acc_sales_return' => ['Retur Penjualan', '4130'],
