@@ -87,6 +87,11 @@
   }
 }
 
+// Hide Alpine-managed blocks until the component has initialised
+[x-cloak] {
+  display: none !important;
+}
+
 // Required field marker
 label.required::after {
   content: ' *';

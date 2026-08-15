@@ -6,6 +6,7 @@ use App\Models\Master\Partner;
 use App\Models\Master\PriceHistory;
 use App\Models\Master\PriceLevel;
 use App\Models\Master\Product;
+use App\Models\Master\ProductCustomerPrice;
 use App\Models\Master\ProductPrice;
 use App\Models\Master\ProductSupplierPrice;
 use Illuminate\Support\Facades\Auth;
@@ -84,6 +85,76 @@ class PricingService
             $product->prices()->whereNotIn('price_level_id', $keep ?: [0])->delete();
 
             $this->syncBaseSalePrice($product);
+
+            return $changed;
+        });
+    }
+
+    /**
+     * Negotiated price for individual customers; overrides their tier.
+     *
+     * @param  array<int,array{partner_id:int|string, price:mixed, min_qty?:mixed, notes?:string|null}>  $rows
+     * @return int number of customers whose price changed
+     */
+    public function syncCustomerPrices(Product $product, array $rows, string $source = 'manual'): int
+    {
+        return DB::transaction(function () use ($product, $rows, $source) {
+            $existing = $product->customerPrices()->get()->keyBy('partner_id');
+            $customers = Partner::query()->customers()->get()->keyBy('id');
+            $changed = 0;
+            $keep = [];
+
+            foreach ($rows as $row) {
+                $partnerId = (int) ($row['partner_id'] ?? 0);
+                $customer = $customers->get($partnerId);
+
+                if (! $customer) {
+                    continue;
+                }
+
+                $price = round((float) ($row['price'] ?? 0), 2);
+                $current = $existing->get($partnerId);
+                $old = $current ? (float) $current->price : 0.0;
+
+                if ($price <= 0) {
+                    if ($current) {
+                        $this->record($product, PriceHistory::TYPE_SALE, $customer->name, $old, 0, $source, partnerId: $partnerId, notes: 'Harga khusus customer dihapus');
+                        $current->delete();
+                        $changed++;
+                    }
+
+                    continue;
+                }
+
+                $keep[] = $partnerId;
+
+                $attributes = [
+                    'price' => $price,
+                    'min_qty' => round((float) ($row['min_qty'] ?? 0), 4),
+                    'notes' => $row['notes'] ?? null,
+                    'is_active' => true,
+                ];
+
+                if ($current) {
+                    if (abs($old - $price) >= 0.01) {
+                        $this->record($product, PriceHistory::TYPE_SALE, $customer->name, $old, $price, $source, partnerId: $partnerId);
+                        $changed++;
+                    }
+                    $current->forceFill($attributes)->save();
+
+                    continue;
+                }
+
+                ProductCustomerPrice::create(array_merge($attributes, [
+                    'product_id' => $product->id,
+                    'partner_id' => $partnerId,
+                ]));
+
+                $this->record($product, PriceHistory::TYPE_SALE, $customer->name, 0, $price, $source, partnerId: $partnerId, notes: 'Harga khusus customer ditetapkan');
+                $changed++;
+            }
+
+            $product->customerPrices()->whereNotIn('partner_id', $keep ?: [0])->delete();
 
             return $changed;
         });
@@ -220,7 +291,10 @@ class PricingService
     /** Sale price a customer should get for a product. */
     public function salePrice(Product $product, ?Partner $customer = null, ?int $priceLevelId = null): float
     {
-        return $product->priceFor($priceLevelId ?? $customer?->effectivePriceLevelId());
+        return $product->priceFor(
+            $priceLevelId ?? $customer?->effectivePriceLevelId(),
+            $customer?->id,
+        );
     }
 
     /** Purchase price to use when ordering a product from a supplier. */

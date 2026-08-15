@@ -79,7 +79,7 @@ class ProductController extends Controller
     {
         $product->load([
             'category', 'uom', 'tax', 'stocks.warehouse',
-            'prices.level', 'supplierPrices.supplier',
+            'prices.level', 'supplierPrices.supplier', 'customerPrices.customer',
         ]);
 
         return view('master.products.show', [
@@ -134,6 +134,7 @@ class ProductController extends Controller
     private function savePrices(Product $product, Request $request): int
     {
         $changed = $this->pricing->syncSalePrices($product, $request->input('prices', []));
+        $changed += $this->pricing->syncCustomerPrices($product, $request->input('customer_prices', []));
         $changed += $this->pricing->syncSupplierPrices($product, $request->input('supplier_prices', []));
 
         return $changed;
@@ -237,10 +238,19 @@ class ProductController extends Controller
     private function formData(Product $product): array
     {
         if ($product->exists) {
-            $product->loadMissing('prices', 'supplierPrices');
+            $product->loadMissing('prices', 'supplierPrices', 'customerPrices');
         } else {
-            $product->setRelation('prices', collect())->setRelation('supplierPrices', collect());
+            $product->setRelation('prices', collect())
+                ->setRelation('supplierPrices', collect())
+                ->setRelation('customerPrices', collect());
         }
+
+        // Partner pickers are `{id, label}` lists so Alpine can filter out rows
+        // already added without another round trip.
+        $asOptions = fn ($partners) => $partners
+            ->map(fn (Partner $p) => ['id' => $p->id, 'label' => $p->code.' — '.$p->name])
+            ->values()
+            ->all();
 
         return [
             'product' => $product,
@@ -249,10 +259,29 @@ class ProductController extends Controller
             'taxes' => Tax::active()->orderBy('code')->get()
                 ->mapWithKeys(fn (Tax $t) => [$t->id => $t->name.' ('.fnum($t->rate).'%)']),
             'priceLevels' => PriceLevel::active()->ordered()->get(),
-            'suppliers' => Partner::suppliers()->active()->orderBy('name')->pluck('name', 'id'),
-            // Keyed so the form can look a stored price up by tier / supplier id.
+            // Keyed so the form can look a stored tier price up by level id.
             'salePrices' => $product->prices->keyBy('price_level_id'),
-            'supplierRows' => $product->supplierPrices->keyBy('partner_id'),
+
+            'supplierOptions' => $asOptions(Partner::suppliers()->active()->orderBy('name')->get(['id', 'code', 'name'])),
+            'customerOptions' => $asOptions(Partner::customers()->active()->orderBy('name')->get(['id', 'code', 'name'])),
+
+            'supplierRowsPayload' => $product->supplierPrices->map(fn ($r) => [
+                'partner_id' => $r->partner_id,
+                'price' => (float) $r->price,
+                'supplier_sku' => $r->supplier_sku,
+                'lead_time_days' => (int) $r->lead_time_days,
+                'min_order_qty' => (float) $r->min_order_qty,
+                'last_purchased_at' => $r->last_purchased_at?->translatedFormat('d M Y'),
+            ])->values()->all(),
+
+            'customerRowsPayload' => $product->customerPrices->map(fn ($r) => [
+                'partner_id' => $r->partner_id,
+                'price' => (float) $r->price,
+                'min_qty' => (float) $r->min_qty,
+                'notes' => $r->notes,
+            ])->values()->all(),
+
+            'preferredSupplierId' => $product->supplierPrices->firstWhere('is_preferred', true)?->partner_id,
         ];
     }
 
@@ -287,10 +316,16 @@ class ProductController extends Controller
             'supplier_prices.*.min_order_qty' => ['nullable', 'numeric', 'min:0'],
             'supplier_prices.*.is_preferred' => ['nullable', 'boolean'],
             'supplier_prices.*.notes' => ['nullable', 'string', 'max:255'],
+
+            'customer_prices' => ['nullable', 'array', 'max:100'],
+            'customer_prices.*.partner_id' => ['required', 'integer', 'exists:partners,id'],
+            'customer_prices.*.price' => ['nullable', 'numeric', 'min:0'],
+            'customer_prices.*.min_qty' => ['nullable', 'numeric', 'min:0'],
+            'customer_prices.*.notes' => ['nullable', 'string', 'max:255'],
         ]);
 
         // Price tables are written separately by PricingService.
-        unset($data['prices'], $data['supplier_prices']);
+        unset($data['prices'], $data['supplier_prices'], $data['customer_prices']);
 
         // The uploaded file is handled separately; never mass-assign it.
         unset($data['image']);

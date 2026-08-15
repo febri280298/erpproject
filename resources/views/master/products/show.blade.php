@@ -131,6 +131,48 @@
                 </div>
             </div>
 
+            {{-- Harga khusus per customer --}}
+            @if($product->customerPrices->isNotEmpty())
+                <x-card title="Harga Jual Khusus per Customer" flush class="mb-3"
+                        subtitle="Menimpa tingkat harga customer yang bersangkutan.">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-vcenter card-table">
+                            <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th class="text-num">Harga Khusus</th>
+                                <th class="text-num">Tingkat Normal</th>
+                                <th class="text-num">Selisih</th>
+                                <th>Catatan</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($product->customerPrices->sortBy(fn ($r) => $r->customer?->name) as $row)
+                                @php
+                                    $normal = $product->priceFor($row->customer?->price_level_id);
+                                    $gap = (float) $row->price - $normal;
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('partners.show', $row->partner_id) }}">{{ $row->customer?->name }}</a>
+                                        @if((float) $row->min_qty > 0)
+                                            <div class="text-secondary small">min {{ fnum($row->min_qty) }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="text-num fw-bold">{{ rupiah($row->price) }}</td>
+                                    <td class="text-num text-secondary">{{ rupiah($normal) }}</td>
+                                    <td class="text-num text-{{ $gap < 0 ? 'green' : ($gap > 0 ? 'red' : 'secondary') }}">
+                                        {{ $gap > 0 ? '+' : '' }}{{ rupiah($gap) }}
+                                    </td>
+                                    <td class="text-secondary">{{ $row->notes ?? '—' }}</td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card>
+            @endif
+
             {{-- Riwayat perubahan harga --}}
             <x-card title="Riwayat Perubahan Harga" flush class="mb-3">
                 <x-slot:actions>

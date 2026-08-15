@@ -106,6 +106,10 @@ export default function docItems(config = {}) {
                 return supplierPrice > 0 ? supplierPrice : parseNum(product.purchase_price ?? 0);
             }
 
+            // A negotiated price for this customer beats their tier.
+            const special = parseNum(product.customer_prices?.[String(this.partnerId)] ?? 0);
+            if (special > 0) return special;
+
             const levelId = this.partnerLevels?.[String(this.partnerId)] ?? this.defaultLevelId;
             const tierPrice = parseNum(product.prices?.[String(levelId)] ?? 0);
 

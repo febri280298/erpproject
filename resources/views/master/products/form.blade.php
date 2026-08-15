@@ -131,85 +131,181 @@
             @endif
         </x-card>
 
-        {{-- Harga beli per supplier --}}
-        <x-card title="Harga Beli per Supplier" class="mt-3"
-                subtitle="Bandingkan penawaran tiap supplier. Centang satu sebagai supplier utama." flush>
-            @if($suppliers->isEmpty())
-                <div class="card-body">
-                    <x-empty icon="ti ti-truck-off" title="Belum ada supplier"
-                             message="Tambahkan mitra bertipe Pemasok terlebih dahulu." />
+        {{-- Harga jual khusus per customer — menimpa tingkat harga --}}
+        <div x-data="partnerPriceRows({
+                name: 'customer_prices',
+                options: {{ Js::from($customerOptions) }},
+                rows: {{ Js::from($customerRowsPayload) }}
+             })">
+            <x-card title="Harga Jual Khusus per Customer" class="mt-3"
+                    subtitle="Hanya untuk customer yang harganya dinegosiasi khusus. Menimpa tingkat harga di atas." flush>
+                <x-slot:actions>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" style="min-width:16rem" x-model="picker">
+                            <option value="">— Pilih customer —</option>
+                            <template x-for="o in available" :key="o.id">
+                                <option :value="o.id" x-text="o.label"></option>
+                            </template>
+                        </select>
+                        <button type="button" class="btn btn-sm btn-primary" @click="addRow()" :disabled="!picker">
+                            <i class="ti ti-plus me-1"></i> Tambah
+                        </button>
+                    </div>
+                </x-slot:actions>
+
+                <div class="card-body py-3" x-show="isEmpty">
+                    <div class="text-secondary text-center">
+                        Belum ada harga khusus. Customer tanpa harga khusus otomatis memakai tingkat harganya.
+                    </div>
                 </div>
-            @else
-                <div class="table-responsive">
+
+                <div class="table-responsive" x-show="!isEmpty" x-cloak>
                     <table class="table table-vcenter card-table">
                         <thead>
                         <tr>
-                            <th>Supplier</th>
-                            <th style="width:14rem">Harga Beli</th>
-                            <th style="width:9rem">Kode Supplier</th>
-                            <th style="width:8rem">Lead Time</th>
-                            <th style="width:8rem">Min Order</th>
-                            <th style="width:6rem" class="text-center">Utama</th>
+                            <th>Customer</th>
+                            <th style="width:16rem">Harga Jual</th>
+                            <th style="width:11rem">Minimal Qty</th>
+                            <th style="min-width:12rem">Catatan</th>
+                            <th class="w-1"></th>
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($suppliers as $id => $name)
-                            @php
-                                $i = $loop->index;
-                                $row = $supplierRows[$id] ?? null;
-                            @endphp
+                        <template x-for="(row, index) in rows" :key="row.partner_id">
                             <tr>
                                 <td>
-                                    <input type="hidden" name="supplier_prices[{{ $i }}][partner_id]" value="{{ $id }}">
-                                    {{ $name }}
-                                    @if($row?->last_purchased_at)
-                                        <div class="text-secondary small">
-                                            Terakhir dibeli {{ fdate($row->last_purchased_at) }}
-                                        </div>
-                                    @endif
+                                    <input type="hidden" :name="`customer_prices[${index}][partner_id]`" :value="row.partner_id">
+                                    <span x-text="labelOf(row.partner_id)"></span>
                                 </td>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-text">Rp</span>
                                         <input type="number" step="0.01" min="0" class="form-control text-end"
-                                               name="supplier_prices[{{ $i }}][price]"
-                                               value="{{ old("supplier_prices.$i.price", $row?->price) }}"
-                                               placeholder="0">
+                                               :name="`customer_prices[${index}][price]`" x-model.number="row.price">
                                     </div>
                                 </td>
                                 <td>
-                                    <input type="text" class="form-control" name="supplier_prices[{{ $i }}][supplier_sku]"
-                                           value="{{ old("supplier_prices.$i.supplier_sku", $row?->supplier_sku) }}">
+                                    <input type="number" step="0.0001" min="0" class="form-control text-end"
+                                           :name="`customer_prices[${index}][min_qty]`" x-model.number="row.min_qty">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" maxlength="255"
+                                           :name="`customer_prices[${index}][notes]`" x-model="row.notes"
+                                           placeholder="mis. kesepakatan kontrak 2026">
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-icon btn-ghost-danger" @click="removeRow(index)"
+                                            aria-label="Hapus baris">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                        </tbody>
+                    </table>
+                </div>
+            </x-card>
+        </div>
+
+        {{-- Harga beli per supplier --}}
+        <div x-data="partnerPriceRows({
+                name: 'supplier_prices',
+                withSupplierFields: true,
+                options: {{ Js::from($supplierOptions) }},
+                rows: {{ Js::from($supplierRowsPayload) }},
+                preferredId: {{ Js::from($preferredSupplierId) }}
+             })">
+            <x-card title="Harga Beli per Supplier" class="mt-3"
+                    subtitle="Tambahkan supplier yang memasok produk ini, lalu tandai satu sebagai supplier utama." flush>
+                <x-slot:actions>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" style="min-width:16rem" x-model="picker">
+                            <option value="">— Pilih supplier —</option>
+                            <template x-for="o in available" :key="o.id">
+                                <option :value="o.id" x-text="o.label"></option>
+                            </template>
+                        </select>
+                        <button type="button" class="btn btn-sm btn-primary" @click="addRow()" :disabled="!picker">
+                            <i class="ti ti-plus me-1"></i> Tambah
+                        </button>
+                    </div>
+                </x-slot:actions>
+
+                <div class="card-body py-3" x-show="isEmpty">
+                    <div class="text-secondary text-center">
+                        Belum ada supplier. Tanpa ini, PO memakai harga beli dasar produk.
+                    </div>
+                </div>
+
+                <div class="table-responsive" x-show="!isEmpty" x-cloak>
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                        <tr>
+                            <th>Supplier</th>
+                            <th style="width:15rem">Harga Beli</th>
+                            <th style="width:9rem">Kode Supplier</th>
+                            <th style="width:8rem">Lead Time</th>
+                            <th style="width:8rem">Min Order</th>
+                            <th style="width:5rem" class="text-center">Utama</th>
+                            <th class="w-1"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <template x-for="(row, index) in rows" :key="row.partner_id">
+                            <tr>
+                                <td>
+                                    <input type="hidden" :name="`supplier_prices[${index}][partner_id]`" :value="row.partner_id">
+                                    <span x-text="labelOf(row.partner_id)"></span>
+                                    <span class="badge bg-green-lt ms-1" x-show="isCheapest(row)">Termurah</span>
+                                    <div class="text-secondary small" x-show="row.last_purchased_at"
+                                         x-text="'Terakhir dibeli ' + row.last_purchased_at"></div>
+                                </td>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="number" step="0.01" min="0" class="form-control text-end"
+                                               :name="`supplier_prices[${index}][price]`" x-model.number="row.price">
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" maxlength="60"
+                                           :name="`supplier_prices[${index}][supplier_sku]`" x-model="row.supplier_sku">
                                 </td>
                                 <td>
                                     <div class="input-group">
                                         <input type="number" min="0" class="form-control text-end"
-                                               name="supplier_prices[{{ $i }}][lead_time_days]"
-                                               value="{{ old("supplier_prices.$i.lead_time_days", $row?->lead_time_days ?? 0) }}">
+                                               :name="`supplier_prices[${index}][lead_time_days]`" x-model.number="row.lead_time_days">
                                         <span class="input-group-text">hari</span>
                                     </div>
                                 </td>
                                 <td>
                                     <input type="number" step="0.0001" min="0" class="form-control text-end"
-                                           name="supplier_prices[{{ $i }}][min_order_qty]"
-                                           value="{{ old("supplier_prices.$i.min_order_qty", $row?->min_order_qty ?? 0) }}">
+                                           :name="`supplier_prices[${index}][min_order_qty]`" x-model.number="row.min_order_qty">
                                 </td>
                                 <td class="text-center">
-                                    <input type="hidden" name="supplier_prices[{{ $i }}][is_preferred]" value="0">
-                                    <input type="checkbox" class="form-check-input m-0"
-                                           name="supplier_prices[{{ $i }}][is_preferred]" value="1"
-                                           @checked(old("supplier_prices.$i.is_preferred", $row?->is_preferred))>
+                                    {{-- Radio, so exactly one supplier can be the preferred one. --}}
+                                    <input type="hidden" :name="`supplier_prices[${index}][is_preferred]`"
+                                           :value="preferredId === String(row.partner_id) ? 1 : 0">
+                                    <input type="radio" class="form-check-input m-0" name="preferred_supplier_ui"
+                                           :value="row.partner_id" x-model="preferredId">
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-icon btn-ghost-danger" @click="removeRow(index)"
+                                            aria-label="Hapus baris">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
-                        @endforeach
+                        </template>
                         </tbody>
                     </table>
                 </div>
+
                 <div class="card-footer text-secondary small">
                     Setiap perubahan harga otomatis tercatat di riwayat harga produk.
                 </div>
-            @endif
-        </x-card>
+            </x-card>
+        </div>
 
         <div class="d-flex gap-2 justify-content-end mt-3 mb-4">
             <a href="{{ route('products.index') }}" class="btn btn-link">Batal</a>

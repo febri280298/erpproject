@@ -71,17 +71,31 @@ class Product extends Model
         return $this->hasMany(ProductSupplierPrice::class);
     }
 
+    public function customerPrices(): HasMany
+    {
+        return $this->hasMany(ProductCustomerPrice::class);
+    }
+
     public function priceHistories(): HasMany
     {
         return $this->hasMany(PriceHistory::class)->latest('id');
     }
 
     /**
-     * Sale price for a tier, falling back to the default tier and then to the
-     * product's own `sale_price` so a product without tiers still sells.
+     * Sale price, resolved in order of how specific the agreement is:
+     * harga khusus customer → tingkat harga → tingkat default → harga dasar.
      */
-    public function priceFor(?int $priceLevelId = null): float
+    public function priceFor(?int $priceLevelId = null, ?int $customerId = null): float
     {
+        if ($customerId) {
+            $rows = $this->relationLoaded('customerPrices') ? $this->customerPrices : $this->customerPrices()->get();
+            $special = $rows->firstWhere('partner_id', $customerId);
+
+            if ($special && $special->is_active && (float) $special->price > 0) {
+                return (float) $special->price;
+            }
+        }
+
         $prices = $this->relationLoaded('prices') ? $this->prices : $this->prices()->get();
 
         $exact = $priceLevelId
@@ -169,7 +183,12 @@ class Product extends Model
     {
         return static::query()
             ->active()
-            ->with(['uom:id,code', 'tax:id,rate', 'prices:id,product_id,price_level_id,price', 'supplierPrices:id,product_id,partner_id,price'])
+            ->with([
+                'uom:id,code', 'tax:id,rate',
+                'prices:id,product_id,price_level_id,price',
+                'supplierPrices:id,product_id,partner_id,price',
+                'customerPrices:id,product_id,partner_id,price',
+            ])
             ->orderBy('name')
             ->get(['id', 'sku', 'name', 'uom_id', 'tax_id', 'purchase_price', 'sale_price'])
             ->map(fn (self $p) => [
@@ -185,6 +204,9 @@ class Product extends Model
                     ->all(),
                 'supplier_prices' => $p->supplierPrices
                     ->mapWithKeys(fn (ProductSupplierPrice $r) => [(string) $r->partner_id => (float) $r->price])
+                    ->all(),
+                'customer_prices' => $p->customerPrices
+                    ->mapWithKeys(fn (ProductCustomerPrice $r) => [(string) $r->partner_id => (float) $r->price])
                     ->all(),
             ])
             ->all();

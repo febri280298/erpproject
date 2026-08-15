@@ -5,6 +5,7 @@ import Alpine from 'alpinejs';
 import ApexCharts from 'apexcharts';
 
 import docItems from './doc-items';
+import partnerPriceRows from './partner-price-rows';
 import { fmtNumber, fmtMoney, parseNum } from './helpers';
 
 window.Alpine = Alpine;
@@ -12,6 +13,7 @@ window.ApexCharts = ApexCharts;
 window.erp = { fmtNumber, fmtMoney, parseNum };
 
 Alpine.data('docItems', docItems);
+Alpine.data('partnerPriceRows', partnerPriceRows);
 
 Alpine.start();
 
