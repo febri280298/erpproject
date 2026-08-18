@@ -9,15 +9,20 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /** [name, email, role, employee NIK] */
+    /**
+     * [nama, email, peran, NIK karyawan]
+     *
+     * Peran Gudang ikut dibuat karena hanya peran itu yang boleh memposting
+     * penerimaan barang dan surat jalan; tanpanya alur pembelian dan penjualan
+     * berhenti di tengah jalan.
+     */
     private const USERS = [
         ['Administrator', 'admin@bonecomtricom.com', 'Super Admin', null],
-        ['Hendra Wijaya', 'manajer@bonecomtricom.com', 'Manajer', 'EMP-0001'],
-        ['Sri Rahayu', 'akuntansi@bonecomtricom.com', 'Akuntansi', 'EMP-0002'],
-        ['Rina Marlina', 'pembelian@bonecomtricom.com', 'Pembelian', 'EMP-0004'],
-        ['Lestari Handayani', 'penjualan@bonecomtricom.com', 'Penjualan', 'EMP-0006'],
-        ['Joko Susilo', 'gudang@bonecomtricom.com', 'Gudang', 'EMP-0008'],
-        ['Fitriani Putri', 'hrd@bonecomtricom.com', 'HRD', 'EMP-0010'],
+        ['Manajer', 'manajer@bonecomtricom.com', 'Manajer', 'EMP-0001'],
+        ['Staf Pembelian', 'pembelian@bonecomtricom.com', 'Pembelian', 'EMP-0004'],
+        ['Staf Gudang', 'gudang@bonecomtricom.com', 'Gudang', 'EMP-0008'],
+        ['Staf Penjualan', 'penjualan@bonecomtricom.com', 'Penjualan', 'EMP-0006'],
+        ['Staf Akuntansi', 'akuntansi@bonecomtricom.com', 'Akuntansi', 'EMP-0002'],
     ];
 
     public function run(): void
@@ -35,7 +40,8 @@ class UserSeeder extends Seeder
 
             $user->syncRoles([$role]);
 
-            if ($nik) {
+            // Karyawan hanya ditautkan bila datanya memang ada.
+            if ($nik && Employee::where('nik', $nik)->exists()) {
                 Employee::where('nik', $nik)->update(['user_id' => $user->id]);
             }
         }

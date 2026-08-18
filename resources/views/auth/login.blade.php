@@ -50,4 +50,68 @@
             </div>
         </div>
     </form>
+
+    {{--
+        Daftar akun uji coba. Hanya muncul di luar produksi: begitu APP_ENV
+        disetel ke production, panel ini hilang dengan sendirinya sehingga
+        kata sandi tidak pernah terpampang di server sungguhan.
+    --}}
+    @if(! app()->environment('production'))
+        <div class="card card-md mt-3" x-data="{ buka: true }">
+            <div class="card-header d-flex align-items-center py-2">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-key me-1"></i> Akun Uji Coba
+                </h3>
+                <div class="card-actions">
+                    <button type="button" class="btn btn-sm btn-ghost-secondary" @click="buka = !buka">
+                        <span x-text="buka ? 'Sembunyikan' : 'Tampilkan'"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive" x-show="buka" x-cloak>
+                <table class="table table-sm table-vcenter card-table">
+                    <thead>
+                    <tr><th>Peran</th><th>Email</th><th class="w-1"></th></tr>
+                    </thead>
+                    <tbody>
+                    @foreach([
+                        ['Super Admin', 'admin@bonecomtricom.com', 'Seluruh modul & pengaturan'],
+                        ['Manajer', 'manajer@bonecomtricom.com', 'Menyetujui PO & SO, laporan'],
+                        ['Pembelian', 'pembelian@bonecomtricom.com', 'Buat PO, kelola supplier'],
+                        ['Gudang', 'gudang@bonecomtricom.com', 'Terima barang, surat jalan, stok'],
+                        ['Penjualan', 'penjualan@bonecomtricom.com', 'Penawaran, SO, pelanggan'],
+                        ['Akuntansi', 'akuntansi@bonecomtricom.com', 'Faktur, pembayaran, jurnal'],
+                    ] as [$peran, $email, $tugas])
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ $peran }}</div>
+                                <div class="text-secondary small">{{ $tugas }}</div>
+                            </td>
+                            <td class="text-secondary small">{{ $email }}</td>
+                            <td>
+                                {{-- Mengisikan form di atas, bukan mengirimnya, agar tetap terlihat apa yang dipakai --}}
+                                <button type="button" class="btn btn-sm"
+                                        onclick="isiAkun('{{ $email }}')">Pakai</button>
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-footer py-2 text-secondary small" x-show="buka" x-cloak>
+                Kata sandi semua akun: <strong>password</strong>.
+                Panel ini otomatis hilang saat <code>APP_ENV=production</code>.
+            </div>
+        </div>
+
+        <script>
+            function isiAkun(email) {
+                document.getElementById('email').value = email;
+                document.getElementById('password').value = 'password';
+                document.getElementById('password').focus();
+            }
+        </script>
+    @endif
 @endsection
