@@ -18,8 +18,29 @@ use App\Models\Sales\SalesInvoice;
  *   periksa  yang harus benar sebelum lanjut
  *   catat    catatan tambahan di bawah tahap
  *   tabel    ['kepala' => [...], 'baris' => [[...], ...]]
+ *
+ * Kunci `tips` berisi kebiasaan antarmuka yang berlaku di seluruh halaman, jadi
+ * tidak enak ditempel ke salah satu tahap saja.
  */
 return [
+
+    'tips' => [
+        [
+            'ikon' => 'ti-search',
+            'judul' => 'Semua isian pilihan bisa diketik',
+            'isi' => 'Klik isian pilihan mana pun — produk, customer, akun, gudang — lalu ketik sebagian namanya untuk menyaring daftar. Nama dan kode dicari sekaligus, jadi "KRT-002" maupun "rubber" sama-sama menemukan barangnya. Tekan Enter untuk memilih yang teratas.',
+        ],
+        [
+            'ikon' => 'ti-dots-vertical',
+            'judul' => 'Tombol Aksi di setiap baris tabel',
+            'isi' => 'Detail, Ubah, dan Hapus tidak ditaruh sebagai kolom sendiri melainkan di tombol <strong>Aksi</strong> pada ujung kanan tiap baris, supaya tabel tetap terbaca. Isi menunya berbeda-beda mengikuti wewenang peran yang sedang masuk.',
+        ],
+        [
+            'ikon' => 'ti-help-circle',
+            'judul' => 'Panduan ini selalu ada di kanan atas',
+            'isi' => 'Ikon tanda tanya di sebelah tombol mode gelap membuka halaman ini dari mana saja. Tahap yang modulnya dimatikan otomatis disembunyikan, jadi yang tampil hanya yang memang dipakai.',
+        ],
+    ],
 
     'peran' => [
         'Super Admin' => ['warna' => 'secondary', 'email' => 'admin@bonecomtricom.com'],

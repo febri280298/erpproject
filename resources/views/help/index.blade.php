@@ -80,6 +80,24 @@
                 </div>
             </x-card>
 
+            <x-card title="Kebiasaan Antarmuka" class="mb-3"
+                    subtitle="Berlaku di semua halaman — cukup dibaca sekali di awal.">
+                <div class="row g-3">
+                    @foreach(config('manual.tips') as $tip)
+                        <div class="col-md-4">
+                            <div class="d-flex gap-2">
+                                <i class="ti {{ $tip['ikon'] }} fs-2 text-secondary"></i>
+                                <div>
+                                    <div class="fw-bold">{{ $tip['judul'] }}</div>
+                                    {{-- Isi panduan ditulis sendiri di config, bukan masukan pengguna --}}
+                                    <div class="text-secondary small">{!! $tip['isi'] !!}</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </x-card>
+
             @foreach($tahapan as $i => $tahap)
                 <div class="card mb-3" id="tahap-{{ $i + 1 }}">
                     <div class="card-body">

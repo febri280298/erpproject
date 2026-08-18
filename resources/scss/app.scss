@@ -8,6 +8,11 @@
 $ti-font-path: '/fonts';
 
 @import '@tabler/core/scss/tabler';
+
+// Gaya dasar TomSelect harus lebih dulu; tabler-vendors berisi penyesuaian
+// Tabler untuk pustaka ini dan harus menimpanya, bukan sebaliknya.
+@import 'tom-select/dist/scss/tom-select.bootstrap5';
+
 @import '@tabler/core/scss/tabler-vendors';
 @import '@tabler/icons-webfont/dist/tabler-icons.scss';
 

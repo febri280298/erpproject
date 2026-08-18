@@ -19,6 +19,7 @@
         "@tabler/icons-webfont": "^3.46.0",
         "alpinejs": "^3.16.1",
         "apexcharts": "^6.8.0",
-        "sass": "^1.102.0"
+        "sass": "^1.102.0",
+        "tom-select": "^2.6.2"
     }
 }

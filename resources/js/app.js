@@ -7,6 +7,7 @@ import ApexCharts from 'apexcharts';
 import deliveryItems from './delivery-items';
 import docItems from './doc-items';
 import partnerPriceRows from './partner-price-rows';
+import pasangSelectPencarian from './select-search';
 import { fmtNumber, fmtMoney, parseNum } from './helpers';
 
 window.Alpine = Alpine;
@@ -18,6 +19,8 @@ Alpine.data('partnerPriceRows', partnerPriceRows);
 Alpine.data('deliveryItems', deliveryItems);
 
 Alpine.start();
+
+pasangSelectPencarian();
 
 // Auto-dismiss flash alerts after 6s
 document.addEventListener('DOMContentLoaded', () => {
