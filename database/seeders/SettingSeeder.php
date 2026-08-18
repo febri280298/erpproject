@@ -84,6 +84,7 @@ class SettingSeeder extends Seeder
         ], 'accounting');
 
         $this->bawaan([
+            'show_decimals' => false,
             'allow_negative_stock' => false,
             'require_po_approval' => true,
             'work_start_time' => '08:00',

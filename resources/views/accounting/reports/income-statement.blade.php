@@ -27,33 +27,33 @@
                 @forelse($revenues as $row)
                     <tr>
                         <td class="ps-4">{{ $row['account']->code }} — {{ $row['account']->name }}</td>
-                        <td class="text-num" style="width:16rem">{{ rupiah($row['amount'], 2) }}</td>
+                        <td class="text-num" style="width:16rem">{{ rupiah($row['amount']) }}</td>
                     </tr>
                 @empty
                     <tr><td class="ps-4 text-secondary" colspan="2">Belum ada pendapatan pada periode ini.</td></tr>
                 @endforelse
                 <tr class="fw-bold border-top">
                     <td>Total Pendapatan</td>
-                    <td class="text-num">{{ rupiah($totalRevenue, 2) }}</td>
+                    <td class="text-num">{{ rupiah($totalRevenue) }}</td>
                 </tr>
 
                 <tr class="table-light fw-bold"><td colspan="2" class="pt-4">BEBAN</td></tr>
                 @forelse($expenses as $row)
                     <tr>
                         <td class="ps-4">{{ $row['account']->code }} — {{ $row['account']->name }}</td>
-                        <td class="text-num">{{ rupiah($row['amount'], 2) }}</td>
+                        <td class="text-num">{{ rupiah($row['amount']) }}</td>
                     </tr>
                 @empty
                     <tr><td class="ps-4 text-secondary" colspan="2">Belum ada beban pada periode ini.</td></tr>
                 @endforelse
                 <tr class="fw-bold border-top">
                     <td>Total Beban</td>
-                    <td class="text-num">{{ rupiah($totalExpense, 2) }}</td>
+                    <td class="text-num">{{ rupiah($totalExpense) }}</td>
                 </tr>
 
                 <tr class="fw-bold border-top {{ $netIncome >= 0 ? 'table-success' : 'table-danger' }}">
                     <td class="fs-3">{{ $netIncome >= 0 ? 'LABA BERSIH' : 'RUGI BERSIH' }}</td>
-                    <td class="text-num fs-3">{{ rupiah(abs($netIncome), 2) }}</td>
+                    <td class="text-num fs-3">{{ rupiah(abs($netIncome)) }}</td>
                 </tr>
                 </tbody>
             </table>

@@ -38,16 +38,16 @@
                                 </td>
                                 <td class="text-secondary">{{ $line->description ?? '—' }}</td>
                                 <td class="text-secondary">{{ $line->partner?->name ?? '—' }}</td>
-                                <td class="text-num">{{ (float) $line->debit > 0 ? rupiah($line->debit, 2) : '' }}</td>
-                                <td class="text-num">{{ (float) $line->credit > 0 ? rupiah($line->credit, 2) : '' }}</td>
+                                <td class="text-num">{{ (float) $line->debit > 0 ? rupiah($line->debit) : '' }}</td>
+                                <td class="text-num">{{ (float) $line->credit > 0 ? rupiah($line->credit) : '' }}</td>
                             </tr>
                         @endforeach
                         </tbody>
                         <tfoot>
                         <tr class="fw-bold">
                             <td colspan="3">Total</td>
-                            <td class="text-num">{{ rupiah($journal->total_debit, 2) }}</td>
-                            <td class="text-num">{{ rupiah($journal->total_credit, 2) }}</td>
+                            <td class="text-num">{{ rupiah($journal->total_debit) }}</td>
+                            <td class="text-num">{{ rupiah($journal->total_credit) }}</td>
                         </tr>
                         </tfoot>
                     </table>

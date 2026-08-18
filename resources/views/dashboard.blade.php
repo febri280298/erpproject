@@ -230,9 +230,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var el = document.getElementById('trend-chart');
-            if (!el || typeof ApexCharts === 'undefined') return;
+            if (!el) return;
 
-            new ApexCharts(el, {
+            window.erp.gambarGrafik(el, {
                 chart: { type: 'area', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
                 series: [
                     { name: 'Penjualan', data: @json($salesTrend['sales']) },
@@ -255,7 +255,7 @@
                 colors: ['#2fb344', '#4299e1'],
                 legend: { position: 'top', horizontalAlign: 'right' },
                 grid: { strokeDashArray: 4 }
-            }).render();
+            });
         });
     </script>
 @endpush

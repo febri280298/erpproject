@@ -23,7 +23,7 @@
             <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Tampilkan</button></div>
             <div class="col-md-4 text-end">
                 <div class="text-secondary small">Saldo Awal Periode</div>
-                <div class="fs-3 fw-bold">{{ rupiah($openingBalance, 2) }}</div>
+                <div class="fs-3 fw-bold">{{ rupiah($openingBalance) }}</div>
             </div>
         </form>
     </x-card>
@@ -41,7 +41,7 @@
                 @php $running = $openingBalance; @endphp
                 <tr class="table-light fw-bold">
                     <td colspan="6">Saldo awal</td>
-                    <td class="text-num">{{ rupiah($running, 2) }}</td>
+                    <td class="text-num">{{ rupiah($running) }}</td>
                 </tr>
 
                 @forelse($lines as $line)
@@ -56,9 +56,9 @@
                         <td><a href="{{ route('journals.show', $line->journal_id) }}">{{ $line->journal?->journal_no }}</a></td>
                         <td class="text-secondary">{{ $line->description ?? $line->journal?->description }}</td>
                         <td class="text-secondary">{{ $line->partner?->name ?? '—' }}</td>
-                        <td class="text-num">{{ (float) $line->debit > 0 ? rupiah($line->debit, 2) : '' }}</td>
-                        <td class="text-num">{{ (float) $line->credit > 0 ? rupiah($line->credit, 2) : '' }}</td>
-                        <td class="text-num fw-bold">{{ rupiah($running, 2) }}</td>
+                        <td class="text-num">{{ (float) $line->debit > 0 ? rupiah($line->debit) : '' }}</td>
+                        <td class="text-num">{{ (float) $line->credit > 0 ? rupiah($line->credit) : '' }}</td>
+                        <td class="text-num fw-bold">{{ rupiah($running) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="7" class="text-center text-secondary py-4">Tidak ada mutasi pada periode ini.</td></tr>
@@ -67,9 +67,9 @@
                 <tfoot>
                 <tr class="fw-bold">
                     <td colspan="4">Total mutasi</td>
-                    <td class="text-num">{{ rupiah($lines->sum('debit'), 2) }}</td>
-                    <td class="text-num">{{ rupiah($lines->sum('credit'), 2) }}</td>
-                    <td class="text-num fs-4">{{ rupiah($running, 2) }}</td>
+                    <td class="text-num">{{ rupiah($lines->sum('debit')) }}</td>
+                    <td class="text-num">{{ rupiah($lines->sum('credit')) }}</td>
+                    <td class="text-num fs-4">{{ rupiah($running) }}</td>
                 </tr>
                 </tfoot>
             </table>

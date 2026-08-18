@@ -1,5 +1,10 @@
-const nf = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-const mf = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Jumlah desimal tampilan diambil dari pengaturan lewat <meta>, supaya total
+// yang dihitung di browser tampil sama persis dengan yang dirender server.
+// Perhitungannya sendiri tetap penuh dua desimal — lihat round() di bawah.
+const desimal = Number(document.querySelector('meta[name="erp-decimals"]')?.content ?? 0) || 0;
+
+const nf = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+const mf = new Intl.NumberFormat('id-ID', { minimumFractionDigits: desimal, maximumFractionDigits: desimal });
 
 /** Parse a user-typed number that may use Indonesian thousand/decimal separators. */
 export function parseNum(value) {

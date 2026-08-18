@@ -132,7 +132,9 @@ class QuotationExport implements FromArray, ShouldAutoSize, WithColumnFormatting
 
     public function columnFormats(): array
     {
-        $money = '#,##0.00';
+        // Mengikuti pengaturan desimal yang sama dengan tampilan layar dan
+        // dokumen cetak, supaya berkas ekspor tidak berbeda dari yang dilihat.
+        $money = desimal() === 2 ? '#,##0.00' : '#,##0';
 
         return [
             'E' => '#,##0.####',

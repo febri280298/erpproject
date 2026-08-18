@@ -98,7 +98,7 @@
                                 {{ fnum($stock->quantity) }} {{ $stock->product?->uom?->code }}
                             </td>
                             <td class="text-num text-secondary">{{ fnum($stock->product?->min_stock) }}</td>
-                            <td class="text-num">{{ rupiah($stock->avg_cost, 2) }}</td>
+                            <td class="text-num">{{ rupiah($stock->avg_cost) }}</td>
                             <td class="text-num">{{ rupiah($stock->value()) }}</td>
                             <td class="text-end">
                                 <a href="{{ route('stocks.card', ['product_id' => $stock->product_id, 'warehouse_id' => $stock->warehouse_id]) }}"

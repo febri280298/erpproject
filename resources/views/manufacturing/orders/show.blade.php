@@ -55,8 +55,8 @@
                                 <td class="text-num {{ $available < (float) $item->planned_qty ? 'text-danger fw-bold' : '' }}">
                                     {{ fnum($available) }}
                                 </td>
-                                <td class="text-num text-secondary">{{ rupiah($item->unit_cost, 2) }}</td>
-                                <td class="text-num">{{ rupiah($item->cost(), 2) }}</td>
+                                <td class="text-num text-secondary">{{ rupiah($item->unit_cost) }}</td>
+                                <td class="text-num">{{ rupiah($item->cost()) }}</td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -107,7 +107,7 @@
                     <dt class="col-6 fw-bold">Total Biaya</dt>
                     <dd class="col-6 text-end fw-bold">{{ rupiah($document->total_cost) }}</dd>
                     <dt class="col-6 text-secondary">HPP per Unit</dt>
-                    <dd class="col-6 text-end">{{ rupiah($document->unitCost(), 2) }}</dd>
+                    <dd class="col-6 text-end">{{ rupiah($document->unitCost()) }}</dd>
                 </dl>
             </x-card>
         </div>

@@ -61,7 +61,8 @@ class QuotationsExport implements FromCollection, ShouldAutoSize, WithColumnForm
 
     public function columnFormats(): array
     {
-        return array_fill_keys(['G', 'H', 'I', 'J', 'K'], '#,##0.00');
+        // Mengikuti pengaturan desimal, sama seperti tampilan layar.
+        return array_fill_keys(['G', 'H', 'I', 'J', 'K'], desimal() === 2 ? '#,##0.00' : '#,##0');
     }
 
     public function styles(Worksheet $sheet): array

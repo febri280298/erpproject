@@ -45,8 +45,8 @@
                             <td><span class="badge bg-secondary-lt">{{ $journal->typeLabel() }}</span></td>
                             <td class="text-secondary">{{ $journal->description }}</td>
                             <td class="text-secondary small">{{ $journal->sourceLabel() }}</td>
-                            <td class="text-num">{{ rupiah($journal->total_debit, 2) }}</td>
-                            <td class="text-num">{{ rupiah($journal->total_credit, 2) }}</td>
+                            <td class="text-num">{{ rupiah($journal->total_debit) }}</td>
+                            <td class="text-num">{{ rupiah($journal->total_credit) }}</td>
                             <td><x-status :value="$journal->status" /></td>
                             <td class="text-end">
                                 <a href="{{ route('journals.show', $journal) }}" class="btn btn-sm btn-ghost-secondary">

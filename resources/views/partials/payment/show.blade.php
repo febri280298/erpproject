@@ -16,8 +16,8 @@
                                 {{ $item->invoice?->invoice_no }}
                             </a></td>
                             <td>{{ fdate($item->invoice?->date) }}</td>
-                            <td class="text-num">{{ rupiah($item->invoice?->total, 2) }}</td>
-                            <td class="text-num fw-bold">{{ rupiah($item->amount, 2) }}</td>
+                            <td class="text-num">{{ rupiah($item->invoice?->total) }}</td>
+                            <td class="text-num fw-bold">{{ rupiah($item->amount) }}</td>
                             <td><x-status :value="$item->invoice?->status" /></td>
                         </tr>
                     @endforeach
@@ -25,7 +25,7 @@
                     <tfoot>
                     <tr class="fw-bold">
                         <td colspan="3" class="text-end">Total</td>
-                        <td class="text-num fs-3">{{ rupiah($document->amount, 2) }}</td>
+                        <td class="text-num fs-3">{{ rupiah($document->amount) }}</td>
                         <td></td>
                     </tr>
                     </tfoot>
@@ -61,7 +61,7 @@
                 <dt class="col-5 text-secondary">Referensi</dt>
                 <dd class="col-7">{{ $document->reference ?? '—' }}</dd>
                 <dt class="col-5 text-secondary">Jumlah</dt>
-                <dd class="col-7 fw-bold">{{ rupiah($document->amount, 2) }}</dd>
+                <dd class="col-7 fw-bold">{{ rupiah($document->amount) }}</dd>
                 <dt class="col-5 text-secondary">Dibuat oleh</dt>
                 <dd class="col-7">{{ $document->creator?->name ?? '—' }}</dd>
                 <dt class="col-5 text-secondary">Diposting</dt>

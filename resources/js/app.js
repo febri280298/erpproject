@@ -2,7 +2,6 @@
 // collapse) and lets us reach Tooltip, which Tabler does not auto-initialise.
 import { Dropdown, Tooltip } from '@tabler/core/dist/js/tabler.esm.min.js';
 import Alpine from 'alpinejs';
-import ApexCharts from 'apexcharts';
 
 import deliveryItems from './delivery-items';
 import docItems from './doc-items';
@@ -10,9 +9,44 @@ import partnerPriceRows from './partner-price-rows';
 import pasangSelectPencarian from './select-search';
 import { fmtNumber, fmtMoney, parseNum } from './helpers';
 
+/**
+ * ApexCharts hanya dipakai di dashboard, tapi besarnya sekitar 234 KB gzip —
+ * lebih berat daripada seluruh sisa bundel digabung. Selama diimpor statis, ia
+ * ikut terunduh di setiap halaman, termasuk halaman login yang tidak punya satu
+ * grafik pun. Impor dinamis memecahnya jadi berkas terpisah yang baru diambil
+ * saat ada grafik yang benar-benar digambar.
+ */
+let pustakaGrafik = null;
+
+const muatPustakaGrafik = () => {
+    pustakaGrafik ??= import('apexcharts').then(({ default: ApexCharts }) => {
+        // Tetap disediakan sebagai global supaya pemanggil lama tidak patah.
+        window.ApexCharts = ApexCharts;
+
+        return ApexCharts;
+    });
+
+    return pustakaGrafik;
+};
+
+/**
+ * Menggambar satu grafik, memuat pustakanya lebih dulu bila belum ada.
+ *
+ * Dipanggil dari <script> di dalam view, bukan lewat atribut data berisi JSON,
+ * karena opsi ApexCharts lazim memuat fungsi formatter — dan fungsi tidak bisa
+ * dititipkan lewat JSON.
+ */
+const gambarGrafik = async (el, opsi) => {
+    const ApexCharts = await muatPustakaGrafik();
+    const grafik = new ApexCharts(el, opsi);
+
+    await grafik.render();
+
+    return grafik;
+};
+
 window.Alpine = Alpine;
-window.ApexCharts = ApexCharts;
-window.erp = { fmtNumber, fmtMoney, parseNum };
+window.erp = { fmtNumber, fmtMoney, parseNum, gambarGrafik };
 
 Alpine.data('docItems', docItems);
 Alpine.data('partnerPriceRows', partnerPriceRows);

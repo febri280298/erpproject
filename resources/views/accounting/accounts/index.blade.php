@@ -64,8 +64,8 @@
                         </td>
                         <td><span class="badge bg-secondary-lt">{{ $account->typeLabel() }}</span></td>
                         <td class="text-secondary">{{ $account->isDebitNormal() ? 'Debit' : 'Kredit' }}</td>
-                        <td class="text-num">{{ $movement ? rupiah($movement->debit, 2) : '—' }}</td>
-                        <td class="text-num">{{ $movement ? rupiah($movement->credit, 2) : '—' }}</td>
+                        <td class="text-num">{{ $movement ? rupiah($movement->debit) : '—' }}</td>
+                        <td class="text-num">{{ $movement ? rupiah($movement->credit) : '—' }}</td>
                         <td><x-status :value="$account->is_active ? 'active' : 'cancelled'" :label="$account->is_active ? 'Aktif' : 'Nonaktif'" /></td>
                         <td class="text-end">
                             <div class="dropdown">

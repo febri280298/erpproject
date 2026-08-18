@@ -29,13 +29,13 @@
             <table class="table table-bordered table-sm">
                 <thead class="table-light"><tr><th colspan="2">PENERIMAAN</th></tr></thead>
                 <tbody>
-                <tr><td>Gaji Pokok</td><td class="text-num">{{ rupiah($item->basic_salary, 2, false) }}</td></tr>
-                <tr><td>Tunjangan</td><td class="text-num">{{ rupiah($item->allowance, 2, false) }}</td></tr>
-                <tr><td>Lembur</td><td class="text-num">{{ rupiah($item->overtime, 2, false) }}</td></tr>
-                <tr><td>Bonus</td><td class="text-num">{{ rupiah($item->bonus, 2, false) }}</td></tr>
+                <tr><td>Gaji Pokok</td><td class="text-num">{{ rupiah($item->basic_salary, null, false) }}</td></tr>
+                <tr><td>Tunjangan</td><td class="text-num">{{ rupiah($item->allowance, null, false) }}</td></tr>
+                <tr><td>Lembur</td><td class="text-num">{{ rupiah($item->overtime, null, false) }}</td></tr>
+                <tr><td>Bonus</td><td class="text-num">{{ rupiah($item->bonus, null, false) }}</td></tr>
                 </tbody>
                 <tfoot>
-                <tr class="fw-bold"><td>Total Penerimaan</td><td class="text-num">{{ rupiah($item->gross_salary, 2, false) }}</td></tr>
+                <tr class="fw-bold"><td>Total Penerimaan</td><td class="text-num">{{ rupiah($item->gross_salary, null, false) }}</td></tr>
                 </tfoot>
             </table>
         </div>
@@ -43,13 +43,13 @@
             <table class="table table-bordered table-sm">
                 <thead class="table-light"><tr><th colspan="2">POTONGAN</th></tr></thead>
                 <tbody>
-                <tr><td>BPJS</td><td class="text-num">{{ rupiah($item->bpjs, 2, false) }}</td></tr>
-                <tr><td>PPh 21</td><td class="text-num">{{ rupiah($item->tax_pph21, 2, false) }}</td></tr>
-                <tr><td>Potongan Lain</td><td class="text-num">{{ rupiah($item->other_deduction, 2, false) }}</td></tr>
+                <tr><td>BPJS</td><td class="text-num">{{ rupiah($item->bpjs, null, false) }}</td></tr>
+                <tr><td>PPh 21</td><td class="text-num">{{ rupiah($item->tax_pph21, null, false) }}</td></tr>
+                <tr><td>Potongan Lain</td><td class="text-num">{{ rupiah($item->other_deduction, null, false) }}</td></tr>
                 <tr><td>&nbsp;</td><td></td></tr>
                 </tbody>
                 <tfoot>
-                <tr class="fw-bold"><td>Total Potongan</td><td class="text-num">{{ rupiah($item->total_deduction, 2, false) }}</td></tr>
+                <tr class="fw-bold"><td>Total Potongan</td><td class="text-num">{{ rupiah($item->total_deduction, null, false) }}</td></tr>
                 </tfoot>
             </table>
         </div>
@@ -58,7 +58,7 @@
     <table class="table table-bordered">
         <tr class="fw-bold">
             <td class="fs-3">GAJI BERSIH DITERIMA</td>
-            <td class="text-num fs-3" style="width:16rem">{{ rupiah($item->net_salary, 2) }}</td>
+            <td class="text-num fs-3" style="width:16rem">{{ rupiah($item->net_salary) }}</td>
         </tr>
     </table>
 

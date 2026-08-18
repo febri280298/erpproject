@@ -49,7 +49,7 @@
                         </td>
                         <td class="text-secondary">{{ $row->uom ?? '—' }}</td>
                         <td class="text-num text-secondary">{{ fnum($row->min_stock) }}</td>
-                        <td class="text-num">{{ rupiah($row->avg_cost, 2) }}</td>
+                        <td class="text-num">{{ rupiah($row->avg_cost) }}</td>
                         <td class="text-num fw-bold">{{ rupiah($row->value) }}</td>
                     </tr>
                 @empty

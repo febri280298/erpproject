@@ -13,11 +13,37 @@ if (! function_exists('setting')) {
     }
 }
 
-if (! function_exists('rupiah')) {
-    /** Format money for display: `Rp 1.250.000` (or with decimals when asked). */
-    function rupiah(mixed $value, int $decimals = 0, bool $withSymbol = true): string
+if (! function_exists('desimal')) {
+    /**
+     * Berapa angka di belakang koma yang dipakai saat menampilkan uang.
+     *
+     * Nilai uang tetap disimpan penuh sampai dua desimal; yang diatur di sini
+     * hanya tampilannya. Bawaannya nol karena harga jual di perdagangan bahan
+     * bangunan hampir selalu bulat, sehingga ",00" di setiap baris justru
+     * menyulitkan membaca angka.
+     */
+    function desimal(): int
     {
-        $formatted = number_format((float) $value, $decimals, ',', '.');
+        try {
+            return setting('show_decimals', false) ? 2 : 0;
+        } catch (\Throwable) {
+            // Terpanggil sebelum tabel settings siap — misalnya saat migrasi
+            // pertama dijalankan. Pakai bawaan daripada menggagalkan perintah.
+            return 0;
+        }
+    }
+}
+
+if (! function_exists('rupiah')) {
+    /**
+     * Format money for display: `Rp 1.250.000`.
+     *
+     * `$decimals` null berarti mengikuti pengaturan; isi angka hanya bila suatu
+     * tempat memang harus tetap sekian desimal apa pun pengaturannya.
+     */
+    function rupiah(mixed $value, ?int $decimals = null, bool $withSymbol = true): string
+    {
+        $formatted = number_format((float) $value, $decimals ?? desimal(), ',', '.');
 
         return $withSymbol ? 'Rp '.$formatted : $formatted;
     }

@@ -151,6 +151,7 @@ class SettingController extends Controller
         $data = $request->validate([
             'allow_negative_stock' => ['boolean'],
             'require_po_approval' => ['boolean'],
+            'show_decimals' => ['boolean'],
             'work_start_time' => ['nullable', 'date_format:H:i'],
             'work_end_time' => ['nullable', 'date_format:H:i'],
             'payroll_bpjs_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
@@ -161,6 +162,7 @@ class SettingController extends Controller
 
         $data['allow_negative_stock'] = $request->boolean('allow_negative_stock');
         $data['require_po_approval'] = $request->boolean('require_po_approval');
+        $data['show_decimals'] = $request->boolean('show_decimals');
 
         $this->settings->setMany($data, 'operations');
 

@@ -23,8 +23,8 @@
                         <td><a href="{{ route('journals.show', $journal) }}">{{ $journal->journal_no }}</a></td>
                         <td>{{ fdate($journal->date) }}</td>
                         <td class="text-secondary">{{ $journal->description }}</td>
-                        <td class="text-num">{{ rupiah($journal->total_debit, 2) }}</td>
-                        <td class="text-num">{{ rupiah($journal->total_credit, 2) }}</td>
+                        <td class="text-num">{{ rupiah($journal->total_debit) }}</td>
+                        <td class="text-num">{{ rupiah($journal->total_credit) }}</td>
                         <td><x-status :value="$journal->status" /></td>
                     </tr>
                 @endforeach

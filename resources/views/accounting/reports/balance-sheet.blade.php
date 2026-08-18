@@ -21,7 +21,7 @@
                 @if(abs($difference) < 0.01)
                     <span class="badge bg-green-lt">Neraca seimbang</span>
                 @else
-                    <span class="badge bg-red-lt">Selisih {{ rupiah(abs($difference), 2) }}</span>
+                    <span class="badge bg-red-lt">Selisih {{ rupiah(abs($difference)) }}</span>
                 @endif
             </div>
         </form>
@@ -36,7 +36,7 @@
                         @forelse($assets as $row)
                             <tr>
                                 <td>{{ $row['account']->code }} — {{ $row['account']->name }}</td>
-                                <td class="text-num" style="width:14rem">{{ rupiah($row['amount'], 2) }}</td>
+                                <td class="text-num" style="width:14rem">{{ rupiah($row['amount']) }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="2" class="text-secondary text-center py-3">Belum ada data.</td></tr>
@@ -45,7 +45,7 @@
                         <tfoot>
                         <tr class="fw-bold table-light">
                             <td>TOTAL AKTIVA</td>
-                            <td class="text-num fs-3">{{ rupiah($totalAssets, 2) }}</td>
+                            <td class="text-num fs-3">{{ rupiah($totalAssets) }}</td>
                         </tr>
                         </tfoot>
                     </table>
@@ -62,36 +62,36 @@
                         @forelse($liabilities as $row)
                             <tr>
                                 <td class="ps-4">{{ $row['account']->code }} — {{ $row['account']->name }}</td>
-                                <td class="text-num" style="width:14rem">{{ rupiah($row['amount'], 2) }}</td>
+                                <td class="text-num" style="width:14rem">{{ rupiah($row['amount']) }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="2" class="ps-4 text-secondary">Belum ada kewajiban.</td></tr>
                         @endforelse
                         <tr class="fw-bold">
                             <td>Total Kewajiban</td>
-                            <td class="text-num">{{ rupiah($totalLiabilities, 2) }}</td>
+                            <td class="text-num">{{ rupiah($totalLiabilities) }}</td>
                         </tr>
 
                         <tr class="table-light fw-bold"><td colspan="2">Ekuitas</td></tr>
                         @foreach($equity as $row)
                             <tr>
                                 <td class="ps-4">{{ $row['account']->code }} — {{ $row['account']->name }}</td>
-                                <td class="text-num">{{ rupiah($row['amount'], 2) }}</td>
+                                <td class="text-num">{{ rupiah($row['amount']) }}</td>
                             </tr>
                         @endforeach
                         <tr>
                             <td class="ps-4">{{ $netIncome >= 0 ? 'Laba' : 'Rugi' }} berjalan</td>
-                            <td class="text-num">{{ rupiah($netIncome, 2) }}</td>
+                            <td class="text-num">{{ rupiah($netIncome) }}</td>
                         </tr>
                         <tr class="fw-bold">
                             <td>Total Ekuitas</td>
-                            <td class="text-num">{{ rupiah($totalEquity, 2) }}</td>
+                            <td class="text-num">{{ rupiah($totalEquity) }}</td>
                         </tr>
                         </tbody>
                         <tfoot>
                         <tr class="fw-bold table-light">
                             <td>TOTAL PASIVA</td>
-                            <td class="text-num fs-3">{{ rupiah($totalLiabilities + $totalEquity, 2) }}</td>
+                            <td class="text-num fs-3">{{ rupiah($totalLiabilities + $totalEquity) }}</td>
                         </tr>
                         </tfoot>
                     </table>

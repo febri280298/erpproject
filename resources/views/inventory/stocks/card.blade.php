@@ -58,7 +58,7 @@
                     <tr class="table-light fw-bold">
                         <td colspan="6">Saldo awal per {{ fdate($filters['from']) }}</td>
                         <td class="text-num">{{ fnum($opening['quantity']) }}</td>
-                        <td class="text-num">{{ rupiah($opening['value'], 2) }}</td>
+                        <td class="text-num">{{ rupiah($opening['value']) }}</td>
                     </tr>
 
                     @forelse($movements as $movement)
@@ -70,7 +70,7 @@
                             <td class="text-num text-success">{{ $movement->isIn() ? fnum($movement->quantity) : '' }}</td>
                             <td class="text-num text-danger">{{ $movement->isIn() ? '' : fnum($movement->quantity) }}</td>
                             <td class="text-num fw-bold">{{ fnum($movement->balance_qty) }}</td>
-                            <td class="text-num">{{ rupiah($movement->unit_cost, 2) }}</td>
+                            <td class="text-num">{{ rupiah($movement->unit_cost) }}</td>
                         </tr>
                     @empty
                         <tr>

@@ -75,9 +75,9 @@
                             </td>
                             <td>{{ fdate($invoice->date) }}</td>
                             <td class="{{ $invoice->isOverdue() ? 'text-danger fw-bold' : '' }}">{{ fdate($invoice->due_date) }}</td>
-                            <td class="text-num">{{ rupiah($invoice->total, 2) }}</td>
-                            <td class="text-num">{{ rupiah($invoice->paid_amount, 2) }}</td>
-                            <td class="text-num fw-bold">{{ rupiah($invoice->outstandingAmount(), 2) }}</td>
+                            <td class="text-num">{{ rupiah($invoice->total) }}</td>
+                            <td class="text-num">{{ rupiah($invoice->paid_amount) }}</td>
+                            <td class="text-num fw-bold">{{ rupiah($invoice->outstandingAmount()) }}</td>
                             <td>
                                 <input type="number" step="0.01" min="0" max="{{ $invoice->outstandingAmount() }}"
                                        name="allocations[{{ $index }}][amount]"

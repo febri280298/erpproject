@@ -89,7 +89,7 @@
                             <td class="text-secondary">{{ $movement->warehouse?->name }}</td>
                             <td class="text-num text-success">{{ $movement->isIn() ? fnum($movement->quantity) : '' }}</td>
                             <td class="text-num text-danger">{{ $movement->isIn() ? '' : fnum($movement->quantity) }}</td>
-                            <td class="text-num">{{ rupiah($movement->unit_cost, 2) }}</td>
+                            <td class="text-num">{{ rupiah($movement->unit_cost) }}</td>
                             <td class="text-num fw-bold">{{ fnum($movement->balance_qty) }}</td>
                         </tr>
                     @endforeach

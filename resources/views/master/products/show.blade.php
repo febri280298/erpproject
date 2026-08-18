@@ -248,7 +248,7 @@
                                 <tr>
                                     <td>{{ $stock->warehouse?->name }}</td>
                                     <td class="text-num fw-bold">{{ fnum($stock->quantity) }} {{ $product->uom?->code }}</td>
-                                    <td class="text-num">{{ rupiah($stock->avg_cost, 2) }}</td>
+                                    <td class="text-num">{{ rupiah($stock->avg_cost) }}</td>
                                     <td class="text-num">{{ rupiah($stock->value()) }}</td>
                                 </tr>
                             @endforeach

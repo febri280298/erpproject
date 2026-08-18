@@ -46,8 +46,8 @@
                                 </td>
                                 <td class="text-num fw-bold">{{ fnum($item->quantity) }}</td>
                                 <td class="text-secondary">{{ $item->product?->uom?->code }}</td>
-                                <td class="text-num">{{ rupiah($item->unit_price, 2) }}</td>
-                                <td class="text-num">{{ rupiah($item->lineTotal(), 2) }}</td>
+                                <td class="text-num">{{ rupiah($item->unit_price) }}</td>
+                                <td class="text-num">{{ rupiah($item->lineTotal()) }}</td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -56,7 +56,7 @@
                             <td colspan="2">Total</td>
                             <td class="text-num">{{ fnum($document->totalQuantity()) }}</td>
                             <td colspan="2"></td>
-                            <td class="text-num">{{ rupiah($document->totalValue(), 2) }}</td>
+                            <td class="text-num">{{ rupiah($document->totalValue()) }}</td>
                         </tr>
                         </tfoot>
                     </table>

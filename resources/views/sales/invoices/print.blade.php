@@ -25,8 +25,8 @@
     @if((float) $document->paid_amount > 0)
         <div class="mt-3">
             <table class="table table-sm w-50 ms-auto">
-                <tr><td class="text-secondary">Sudah dibayar</td><td class="text-num">{{ rupiah($document->paid_amount, 2, false) }}</td></tr>
-                <tr class="fw-bold"><td>Sisa tagihan</td><td class="text-num">{{ rupiah($document->outstandingAmount(), 2) }}</td></tr>
+                <tr><td class="text-secondary">Sudah dibayar</td><td class="text-num">{{ rupiah($document->paid_amount, null, false) }}</td></tr>
+                <tr class="fw-bold"><td>Sisa tagihan</td><td class="text-num">{{ rupiah($document->outstandingAmount()) }}</td></tr>
             </table>
         </div>
     @endif

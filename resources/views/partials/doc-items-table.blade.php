@@ -42,10 +42,10 @@
                 <td class="text-num">{{ fnum($item->quantity) }}</td>
                 <td class="text-secondary">{{ $item->product?->uom?->code ?? '—' }}</td>
                 @if($showPrice)
-                    <td class="text-num">{{ rupiah($item->unit_price, 2) }}</td>
+                    <td class="text-num">{{ rupiah($item->unit_price) }}</td>
                     <td class="text-num">{{ fnum($item->discount_percent) }}%</td>
-                    <td class="text-num">{{ rupiah($item->tax_amount, 2) }}</td>
-                    <td class="text-num fw-bold">{{ rupiah($item->total, 2) }}</td>
+                    <td class="text-num">{{ rupiah($item->tax_amount) }}</td>
+                    <td class="text-num fw-bold">{{ rupiah($item->total) }}</td>
                 @endif
                 @foreach($extraColumns as $column)
                     <td class="{{ $column['class'] ?? 'text-num' }}">{!! $column['render']($item) !!}</td>

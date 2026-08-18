@@ -27,10 +27,10 @@
                             </a>
                         </td>
                         <td><span class="badge bg-secondary-lt">{{ $row['account']->typeLabel() }}</span></td>
-                        <td class="text-num text-secondary">{{ rupiah($row['opening'], 2) }}</td>
-                        <td class="text-num">{{ rupiah($row['debit'], 2) }}</td>
-                        <td class="text-num">{{ rupiah($row['credit'], 2) }}</td>
-                        <td class="text-num fw-bold">{{ rupiah($row['closing'], 2) }}</td>
+                        <td class="text-num text-secondary">{{ rupiah($row['opening']) }}</td>
+                        <td class="text-num">{{ rupiah($row['debit']) }}</td>
+                        <td class="text-num">{{ rupiah($row['credit']) }}</td>
+                        <td class="text-num fw-bold">{{ rupiah($row['closing']) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="7" class="text-center text-secondary py-4">Belum ada transaksi pada periode ini.</td></tr>
@@ -39,13 +39,13 @@
                 <tfoot>
                 <tr class="fw-bold">
                     <td colspan="4" class="text-end">Total Mutasi</td>
-                    <td class="text-num fs-4">{{ rupiah($totalDebit, 2) }}</td>
-                    <td class="text-num fs-4">{{ rupiah($totalCredit, 2) }}</td>
+                    <td class="text-num fs-4">{{ rupiah($totalDebit) }}</td>
+                    <td class="text-num fs-4">{{ rupiah($totalCredit) }}</td>
                     <td class="text-num">
                         @if(abs($totalDebit - $totalCredit) < 0.01)
                             <span class="badge bg-green-lt">Seimbang</span>
                         @else
-                            <span class="badge bg-red-lt">Selisih {{ rupiah(abs($totalDebit - $totalCredit), 2) }}</span>
+                            <span class="badge bg-red-lt">Selisih {{ rupiah(abs($totalDebit - $totalCredit)) }}</span>
                         @endif
                     </td>
                 </tr>

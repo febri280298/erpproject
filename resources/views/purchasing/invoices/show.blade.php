@@ -61,7 +61,7 @@
                                     <td><a href="{{ route('supplier-payments.show', $payment) }}">{{ $payment->payment_no }}</a></td>
                                     <td>{{ fdate($payment->date) }}</td>
                                     <td class="text-secondary">{{ $payment->methodLabel() }}</td>
-                                    <td class="text-num">{{ rupiah($payment->pivot->amount, 2) }}</td>
+                                    <td class="text-num">{{ rupiah($payment->pivot->amount) }}</td>
                                     <td><x-status :value="$payment->status" /></td>
                                 </tr>
                             @endforeach

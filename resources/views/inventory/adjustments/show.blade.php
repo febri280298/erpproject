@@ -49,8 +49,8 @@
                                 <td class="text-num fw-bold {{ $difference > 0 ? 'text-success' : ($difference < 0 ? 'text-danger' : 'text-secondary') }}">
                                     {{ $difference > 0 ? '+' : '' }}{{ fnum($difference) }}
                                 </td>
-                                <td class="text-num text-secondary">{{ rupiah($item->unit_cost, 2) }}</td>
-                                <td class="text-num">{{ rupiah($difference * (float) $item->unit_cost, 2) }}</td>
+                                <td class="text-num text-secondary">{{ rupiah($item->unit_cost) }}</td>
+                                <td class="text-num">{{ rupiah($difference * (float) $item->unit_cost) }}</td>
                                 <td class="text-secondary">{{ $item->notes ?? '—' }}</td>
                             </tr>
                         @endforeach
@@ -58,7 +58,7 @@
                         <tfoot>
                         <tr class="fw-bold">
                             <td colspan="6" class="text-end">Total Nilai Penyesuaian</td>
-                            <td class="text-num fs-4">{{ rupiah($document->valueImpact(), 2) }}</td>
+                            <td class="text-num fs-4">{{ rupiah($document->valueImpact()) }}</td>
                             <td></td>
                         </tr>
                         </tfoot>

@@ -111,7 +111,7 @@ abstract class PaymentDocumentController extends Controller
                         throw new RuntimeException(sprintf(
                             'Alokasi untuk faktur %s melebihi sisa tagihan (%s).',
                             $invoice->invoice_no,
-                            rupiah($invoice->outstandingAmount(), 2)
+                            rupiah($invoice->outstandingAmount())
                         ));
                     }
 

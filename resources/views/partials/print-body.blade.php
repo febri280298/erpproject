@@ -66,9 +66,9 @@
             <td class="text-num">{{ fnum($item->quantity) }}</td>
             <td>{{ $item->product?->uom?->code ?? '—' }}</td>
             @if($showPrice)
-                <td class="text-num">{{ rupiah($item->unit_price, 2, false) }}</td>
+                <td class="text-num">{{ rupiah($item->unit_price, null, false) }}</td>
                 <td class="text-num">{{ fnum($item->discount_percent) }}%</td>
-                <td class="text-num">{{ rupiah($item->subtotal, 2, false) }}</td>
+                <td class="text-num">{{ rupiah($item->subtotal, null, false) }}</td>
             @endif
         </tr>
     @endforeach
@@ -94,32 +94,32 @@
         </div>
         <div class="col-5">
             <table class="table table-sm mb-0">
-                <tr><td class="text-secondary">Subtotal (DPP)</td><td class="text-num">{{ rupiah($document->subtotal, 2, false) }}</td></tr>
+                <tr><td class="text-secondary">Subtotal (DPP)</td><td class="text-num">{{ rupiah($document->subtotal, null, false) }}</td></tr>
                 @if((float) ($document->dpp_other_amount ?? 0) > 0
                     && abs((float) $document->dpp_other_amount - (float) $document->subtotal) >= 0.01)
                     <tr>
                         <td class="text-secondary">DPP Nilai Lain ({{ app(\App\Services\LineItemCalculator::class)->ratioLabel() }})</td>
-                        <td class="text-num">{{ rupiah($document->dpp_other_amount, 2, false) }}</td>
+                        <td class="text-num">{{ rupiah($document->dpp_other_amount, null, false) }}</td>
                     </tr>
                 @endif
                 @if((float) $document->discount_amount > 0)
-                    <tr><td class="text-secondary">Diskon</td><td class="text-num">({{ rupiah($document->discount_amount, 2, false) }})</td></tr>
+                    <tr><td class="text-secondary">Diskon</td><td class="text-num">({{ rupiah($document->discount_amount, null, false) }})</td></tr>
                 @endif
                 @if((float) $document->shipping_cost > 0)
-                    <tr><td class="text-secondary">Biaya Kirim</td><td class="text-num">{{ rupiah($document->shipping_cost, 2, false) }}</td></tr>
+                    <tr><td class="text-secondary">Biaya Kirim</td><td class="text-num">{{ rupiah($document->shipping_cost, null, false) }}</td></tr>
                 @endif
-                <tr><td class="text-secondary">PPN</td><td class="text-num">{{ rupiah($document->tax_amount, 2, false) }}</td></tr>
+                <tr><td class="text-secondary">PPN</td><td class="text-num">{{ rupiah($document->tax_amount, null, false) }}</td></tr>
                 <tr class="fw-bold" style="border-top:1pt solid #000">
-                    <td>TOTAL</td><td class="text-num">{{ rupiah($document->total, 2) }}</td>
+                    <td>TOTAL</td><td class="text-num">{{ rupiah($document->total) }}</td>
                 </tr>
                 {{-- PPh 23 disetor sendiri oleh customer, jadi yang ditransfer lebih kecil --}}
                 @if((float) ($document->wht_amount ?? 0) > 0)
                     <tr>
                         <td class="text-secondary">PPh 23 ({{ fnum($document->wht_rate) }}%)</td>
-                        <td class="text-num">({{ rupiah($document->wht_amount, 2, false) }})</td>
+                        <td class="text-num">({{ rupiah($document->wht_amount, null, false) }})</td>
                     </tr>
                     <tr class="fw-bold" style="border-top:.5pt solid #666">
-                        <td>DIBAYAR</td><td class="text-num">{{ rupiah($document->amountDue(), 2) }}</td>
+                        <td>DIBAYAR</td><td class="text-num">{{ rupiah($document->amountDue()) }}</td>
                     </tr>
                 @endif
             </table>

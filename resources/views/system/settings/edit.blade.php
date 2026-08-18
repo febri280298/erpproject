@@ -192,6 +192,10 @@
                         <x-form.checkbox name="require_po_approval" label="Wajib persetujuan pesanan pembelian"
                                          :value="$settings['require_po_approval'] ?? true" col="col-md-6" />
 
+                        <x-form.checkbox name="show_decimals" label="Tampilkan 2 angka di belakang koma"
+                                         :value="$settings['show_decimals'] ?? false" col="col-md-12"
+                                         help="Berlaku pada semua transaksi, laporan, dan dokumen cetak. Nilai tetap disimpan penuh sampai dua desimal — yang berubah hanya tampilannya." />
+
                         <x-form.input name="work_start_time" label="Jam Masuk Standar" type="time"
                                       :value="$settings['work_start_time'] ?? '08:00'" col="col-md-3" />
                         <x-form.input name="work_end_time" label="Jam Pulang Standar" type="time"
