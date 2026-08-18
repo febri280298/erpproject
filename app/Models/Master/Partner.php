@@ -29,7 +29,7 @@ class Partner extends Model
     public const TYPE_BOTH = 'both';
 
     protected $fillable = [
-        'code', 'name', 'type', 'contact_person', 'phone', 'email', 'npwp',
+        'code', 'initial', 'name', 'type', 'contact_person', 'phone', 'email', 'npwp',
         'address', 'city', 'payment_term_id', 'credit_limit', 'opening_balance',
         'notes', 'is_active',
     ];
@@ -40,7 +40,7 @@ class Partner extends Model
         'is_active' => 'boolean',
     ];
 
-    protected static array $searchable = ['code', 'name', 'contact_person', 'phone', 'email', 'city'];
+    protected static array $searchable = ['code', 'initial', 'name', 'contact_person', 'phone', 'email', 'city'];
 
     public function paymentTerm(): BelongsTo
     {

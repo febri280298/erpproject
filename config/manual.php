@@ -80,6 +80,7 @@ return [
                 '<span class="path">Data Master → Gudang</span> — sesuaikan nama, tandai satu sebagai default.',
                 '<span class="path">Data Master → Termin Pembayaran (TOP)</span> — Tunai, Net 30, dan seterusnya.',
                 '<span class="path">Data Master → Tingkat Harga</span> — Eceran, Grosir, Proyek. Tandai satu sebagai default.',
+                '<span class="path">Data Master → Customer & Supplier</span> — isi <strong>Kode</strong> berurutan (CUST-001, SUPP-001) dan <strong>Inisial</strong>, singkatan pendek yang dipakai sehari-hari: PT Ravalia Inti Mandiri menjadi RIM. Inisial terisi otomatis dari nama dan boleh diubah, tetapi tidak boleh sama antar mitra.',
                 '<span class="path">Data Master → Customer & Supplier</span> — untuk customer pilih <strong>Tingkat Harga</strong>-nya; harga di pesanan penjualan nanti terisi otomatis dari situ.',
                 '<span class="path">Data Master → Produk / Barang</span> — isi SKU, nama, kategori, satuan, <strong>Perlakuan PPN</strong>, harga beli & jual, stok minimum.',
                 'Masih di form produk, gulir ke bawah: isi <strong>Harga Jual per Tingkat</strong>, <strong>Harga Khusus per Customer</strong> bila ada, dan <strong>Harga Beli per Supplier</strong> — tandai satu supplier utama.',

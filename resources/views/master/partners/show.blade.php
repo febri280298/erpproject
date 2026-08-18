@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $partner->name)
-@section('pretitle', $partner->typeLabel() . ' · ' . $partner->code)
+@section('pretitle', $partner->typeLabel() . ' · ' . $partner->code . ($partner->initial ? ' · ' . $partner->initial : ''))
 
 @section('actions')
     @can('partner.edit')
@@ -16,6 +16,14 @@
         <div class="col-lg-4">
             <x-card title="Informasi Mitra">
                 <dl class="row mb-0">
+                    <dt class="col-5 text-secondary">Inisial</dt>
+                    <dd class="col-7">
+                        @if($partner->initial)
+                            <span class="badge bg-secondary-lt font-monospace">{{ $partner->initial }}</span>
+                        @else
+                            —
+                        @endif
+                    </dd>
                     <dt class="col-5 text-secondary">Kontak</dt>
                     <dd class="col-7">{{ $partner->contact_person ?? '—' }}</dd>
                     <dt class="col-5 text-secondary">Telepon</dt>

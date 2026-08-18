@@ -12,9 +12,13 @@
 
                 <x-card title="Identitas">
                     <div class="row g-3">
-                        <x-form.input name="code" label="Kode" :value="$partner->code" required col="col-md-3"
+                        <x-form.input name="code" label="Kode" :value="$partner->code" required col="col-md-2"
                                       placeholder="CUS-0001" />
-                        <x-form.input name="name" label="Nama Perusahaan / Perorangan" :value="$partner->name" required col="col-md-6" />
+                        <x-form.input name="name" label="Nama Perusahaan / Perorangan" :value="$partner->name" required col="col-md-5"
+                                      data-sumber-inisial />
+                        <x-form.input name="initial" label="Inisial" :value="$partner->initial" col="col-md-2"
+                                      placeholder="RIM" maxlength="10" style="text-transform:uppercase"
+                                      help="Singkatan nama, terisi otomatis dan boleh diubah." />
                         <x-form.select name="type" label="Tipe" :value="$partner->type" required col="col-md-3" :placeholder="false"
                                        :options="['customer' => 'Pelanggan', 'supplier' => 'Pemasok', 'both' => 'Pelanggan & Pemasok']" />
 

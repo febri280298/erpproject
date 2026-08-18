@@ -104,8 +104,18 @@ class PartnerController extends Controller
 
     private function validated(Request $request, ?Partner $partner = null): array
     {
+        // Inisial dirapikan dulu: disimpan huruf besar tanpa spasi agar "rim",
+        // "RIM", dan "R I M" tidak berakhir sebagai tiga penanda berbeda, dan
+        // agar aturan unik di bawah benar-benar menangkap kembarannya.
+        if ($request->filled('initial')) {
+            $request->merge([
+                'initial' => strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $request->input('initial'))),
+            ]);
+        }
+
         return $request->validate([
             'code' => ['required', 'string', 'max:30', Rule::unique('partners', 'code')->ignore($partner?->id)],
+            'initial' => ['nullable', 'string', 'max:10', 'regex:/^[A-Z0-9]+$/', Rule::unique('partners', 'initial')->ignore($partner?->id)],
             'name' => ['required', 'string', 'max:200'],
             'type' => ['required', Rule::in([Partner::TYPE_CUSTOMER, Partner::TYPE_SUPPLIER, Partner::TYPE_BOTH])],
             'contact_person' => ['nullable', 'string', 'max:150'],

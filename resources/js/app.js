@@ -6,6 +6,7 @@ import Alpine from 'alpinejs';
 import deliveryItems from './delivery-items';
 import docItems from './doc-items';
 import partnerPriceRows from './partner-price-rows';
+import pasangInisialMitra from './inisial-mitra';
 import pasangSelectPencarian from './select-search';
 import { fmtNumber, fmtMoney, parseNum } from './helpers';
 
@@ -55,6 +56,7 @@ Alpine.data('deliveryItems', deliveryItems);
 Alpine.start();
 
 pasangSelectPencarian();
+pasangInisialMitra();
 
 // Auto-dismiss flash alerts after 6s
 document.addEventListener('DOMContentLoaded', () => {

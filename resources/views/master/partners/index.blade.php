@@ -62,6 +62,7 @@
                     <thead>
                     <tr>
                         <th>Kode</th>
+                        <th>Inisial</th>
                         <th>Nama</th>
                         <th>Tipe</th>
                         <th>Kontak</th>
@@ -75,6 +76,13 @@
                     @foreach($partners as $partner)
                         <tr>
                             <td class="fw-bold">{{ $partner->code }}</td>
+                            <td>
+                                @if($partner->initial)
+                                    <span class="badge bg-secondary-lt font-monospace">{{ $partner->initial }}</span>
+                                @else
+                                    <span class="text-secondary">—</span>
+                                @endif
+                            </td>
                             <td><a href="{{ route('partners.show', $partner) }}">{{ $partner->name }}</a></td>
                             <td>
                                 <span class="badge bg-{{ $partner->type === 'customer' ? 'green' : ($partner->type === 'supplier' ? 'azure' : 'purple') }}-lt">
