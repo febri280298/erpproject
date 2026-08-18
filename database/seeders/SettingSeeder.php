@@ -20,6 +20,39 @@ class SettingSeeder extends Seeder
         'wht_service_rate' => ['2', 'number'],
     ];
 
+    /**
+     * Menulis nilai bawaan hanya bila kuncinya belum pernah ada.
+     *
+     * Seeder ini boleh dijalankan ulang kapan saja (mis. saat menambah
+     * pengaturan baru), jadi ia tidak boleh menimpa nilai yang sudah diubah
+     * pengguna lewat halaman Pengaturan.
+     */
+    private function bawaan(array $nilai, string $grup): int
+    {
+        $baru = 0;
+
+        foreach ($nilai as $kunci => $isi) {
+            $type = match (true) {
+                is_bool($isi) => 'boolean',
+                is_numeric($isi) && ! is_string($isi) => 'number',
+                default => 'string',
+            };
+
+            $dibuat = Setting::firstOrCreate(
+                ['key' => $kunci],
+                [
+                    'group' => $grup,
+                    'type' => $type,
+                    'value' => is_bool($isi) ? ($isi ? '1' : '0') : (string) $isi,
+                ],
+            )->wasRecentlyCreated;
+
+            $baru += $dibuat ? 1 : 0;
+        }
+
+        return $baru;
+    }
+
     public function run(): void
     {
         foreach (self::TAX_DEFAULTS as $key => [$value, $type]) {
@@ -31,7 +64,7 @@ class SettingSeeder extends Seeder
 
         $settings = app(SettingService::class);
 
-        $settings->setMany([
+        $this->bawaan([
             'company_name' => env('ERP_COMPANY_NAME', 'PT Bonecom Tricom'),
             'company_address' => 'Jl. Raya Industri No. 1, Jakarta',
             'company_phone' => '(021) 1234-5678',
@@ -40,17 +73,17 @@ class SettingSeeder extends Seeder
         ], 'company');
 
         // Account mappings default to the COA codes seeded by ChartOfAccountSeeder.
-        $settings->setMany(
+        $this->bawaan(
             collect(AccountMap::MAPPINGS)->map(fn ($mapping) => $mapping[1])->all(),
             'accounting'
         );
 
-        $settings->setMany([
+        $this->bawaan([
             'fiscal_year_start' => env('ERP_FISCAL_YEAR_START', '01-01'),
             'default_tax_rate' => (float) env('ERP_TAX_RATE', 11),
         ], 'accounting');
 
-        $settings->setMany([
+        $this->bawaan([
             'allow_negative_stock' => false,
             'require_po_approval' => true,
             'work_start_time' => '08:00',
