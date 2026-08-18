@@ -44,3 +44,21 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('change', () => el.closest('form')?.submit());
     });
 });
+
+// Footer melayang di atas isi halaman, jadi tingginya harus dicadangkan sebagai
+// ruang kosong di bawah konten. Tingginya diukur langsung — bukan ditebak —
+// karena ikut berubah saat teksnya membungkus di layar sempit.
+document.addEventListener('DOMContentLoaded', () => {
+    const footer = document.querySelector('.footer-fixed');
+    if (!footer) {
+        return;
+    }
+
+    const ukur = () => {
+        const tinggi = Math.ceil(footer.getBoundingClientRect().height);
+        document.documentElement.style.setProperty('--erp-footer-h', `${tinggi}px`);
+    };
+
+    ukur();
+    new ResizeObserver(ukur).observe(footer);
+});

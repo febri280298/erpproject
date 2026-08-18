@@ -97,3 +97,41 @@ label.required::after {
   content: ' *';
   color: var(--tblr-danger);
 }
+
+// Footer dipaku ke bawah layar agar tidak ikut tergulir bersama isi halaman.
+// --erp-footer-h diisi ulang oleh app.js dari tinggi footer yang sebenarnya;
+// nilai di sini hanya cadangan sebelum skrip sempat berjalan.
+:root {
+  --erp-footer-h: 4.5rem;
+}
+
+@media (min-width: 992px) {
+  :root {
+    --erp-footer-h: 3.5rem;
+  }
+}
+
+.footer-fixed {
+  position: fixed;
+  inset: auto 0 0 0;
+  // Di bawah dropdown (1000) supaya menu yang terbuka di dekat bawah tidak tertutup.
+  z-index: 100;
+  padding: 0.5rem 0;
+  background: var(--tblr-body-bg);
+  border-top: 1px solid var(--tblr-border-color);
+
+  // Sidebar melebar mulai breakpoint lg; sebelum itu ia tersembunyi di luar layar.
+  @media (min-width: 992px) {
+    left: 15rem;
+  }
+
+  .list-inline-item,
+  span {
+    font-size: 0.8125rem;
+  }
+}
+
+// Ruang agar baris terakhir isi halaman tidak tertutup footer yang melayang.
+.page-wrapper:has(.footer-fixed) .page-body {
+  padding-bottom: var(--erp-footer-h);
+}

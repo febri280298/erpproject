@@ -1,6 +1,6 @@
-<footer class="footer footer-transparent d-print-none">
+<footer class="footer footer-fixed d-print-none">
     <div class="container-xl">
-        <div class="row align-items-center flex-row-reverse py-3">
+        <div class="row align-items-center flex-row-reverse py-2">
             <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0 text-center text-lg-end">
                     <li class="list-inline-item text-secondary">
