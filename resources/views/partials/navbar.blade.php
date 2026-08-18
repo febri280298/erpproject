@@ -8,6 +8,14 @@
         </button>
 
         <div class="navbar-nav flex-row order-md-last">
+            {{-- Buku panduan, sebaris dengan tombol tema --}}
+            <div class="d-none d-md-flex">
+                <a href="{{ route('help') }}" class="nav-link px-0 me-2" title="Buku Panduan"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom" aria-label="Buku Panduan">
+                    <i class="ti ti-help-circle fs-2"></i>
+                </a>
+            </div>
+
             {{-- Theme toggle: two buttons, only the relevant one is visible per theme --}}
             <div class="d-none d-md-flex">
                 <a href="?theme=dark" class="nav-link px-0 hide-theme-dark" title="Mode gelap"
@@ -35,6 +43,9 @@
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                     <a href="{{ route('profile.edit') }}" class="dropdown-item">
                         <i class="ti ti-user me-2"></i> Profil Saya
+                    </a>
+                    <a href="{{ route('help') }}" class="dropdown-item d-md-none">
+                        <i class="ti ti-help-circle me-2"></i> Buku Panduan
                     </a>
                     @can('setting.view')
                         <a href="{{ route('settings.edit') }}" class="dropdown-item">

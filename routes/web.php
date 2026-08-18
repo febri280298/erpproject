@@ -103,6 +103,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:dashboard.view');
     Route::get('search', SearchController::class)->name('search');
 
+    // Buku panduan; isinya di config/manual.php, dibaca semua peran.
+    Route::view('panduan', 'help.index')->name('help');
+
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
