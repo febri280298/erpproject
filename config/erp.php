@@ -275,7 +275,7 @@ return [
         'Manajer' => [
             'dashboard.*', 'report.*', 'accounting-report.*',
             'product.view', 'partner.view', 'warehouse.view', 'stock.view',
-            'purchase-requisition.*', 'purchase-order.*', 'sales-order.*',
+            'purchase-requisition.*', 'purchase-order.*', 'quotation.view', 'sales-order.*',
             'leave.*', 'payroll.view', 'employee.view', 'journal.view', 'account.view',
         ],
         'Pembelian' => [
@@ -289,11 +289,13 @@ return [
             'product.view', 'partner.view', 'partner.create', 'partner.edit', 'stock.view',
             'quotation.*', 'sales-order.view', 'sales-order.create', 'sales-order.edit',
             'delivery-order.view', 'sales-invoice.view', 'customer-payment.view',
+            'sales-return.view', 'sales-return.create',
         ],
         'Gudang' => [
             'dashboard.view', 'report.view',
             'product.view', 'warehouse.view', 'stock.view',
             'goods-receipt.*', 'delivery-order.*', 'stock-transfer.*', 'stock-adjustment.*',
+            'sales-return.view', 'sales-return.create',
             'purchase-order.view', 'sales-order.view', 'bom.view', 'production-order.*',
         ],
         'Akuntansi' => [
@@ -301,6 +303,7 @@ return [
             'product.view', 'partner.view', 'stock.view',
             'account.*', 'journal.*', 'fiscal-period.*',
             'purchase-invoice.*', 'supplier-payment.*', 'sales-invoice.*', 'customer-payment.*',
+            'sales-return.*',
             'purchase-order.view', 'sales-order.view', 'goods-receipt.view', 'delivery-order.view',
         ],
         'HRD' => [
