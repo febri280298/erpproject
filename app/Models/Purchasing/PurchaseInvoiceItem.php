@@ -10,7 +10,7 @@ class PurchaseInvoiceItem extends Model
 {
     protected $fillable = [
         'purchase_invoice_id', 'product_id', 'description', 'quantity', 'unit_price',
-        'discount_percent', 'tax_rate', 'tax_amount', 'subtotal', 'total',
+        'discount_percent', 'tax_rate', 'tax_amount', 'subtotal', 'dpp_other', 'total',
     ];
 
     protected $casts = [
@@ -20,6 +20,7 @@ class PurchaseInvoiceItem extends Model
         'tax_rate' => 'decimal:4',
         'tax_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'dpp_other' => 'decimal:2',
         'total' => 'decimal:2',
     ];
 

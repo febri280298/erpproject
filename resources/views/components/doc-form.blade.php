@@ -80,6 +80,13 @@
                     {{-- Menampilkan DPP (belum kena pajak) agar kolomnya berjumlah sama
                          dengan Subtotal di rekap; pajak ditambahkan sekali di bawah. --}}
                     @if($showPrice)<th class="col-total text-end">DPP</th>@endif
+                    {{-- Dasar pengenaan tiap baris hanya berbeda dari DPP ketika DPP
+                         Nilai Lain aktif, jadi kolomnya baru muncul saat itu. --}}
+                    @if($showPrice)
+                        <th class="col-total text-end" x-show="usesDppOther" x-cloak>
+                            DPP Nilai Lain
+                        </th>
+                    @endif
                     <th class="col-action"></th>
                 </tr>
                 </thead>
@@ -127,6 +134,8 @@
                         @endif
                         @if($showPrice)
                             <td class="text-num" x-text="money(lineSubtotal(row))"></td>
+                            <td class="text-num" x-show="usesDppOther" x-cloak
+                                x-text="money(lineTaxBase(row))"></td>
                         @endif
                         <td>
                             <button type="button" class="btn btn-icon btn-ghost-danger" @click="removeRow(index)"

@@ -44,6 +44,14 @@ abstract class LineItemDocumentController extends Controller
     /** Which product price seeds a new row in the browser. */
     protected string $priceField = 'sale_price';
 
+    /**
+     * Apakah tabel item dokumen ini punya kolom `dpp_other`.
+     *
+     * Hanya dokumen berpajak yang punya — permintaan pembelian tidak memuat
+     * harga sama sekali, jadi menuliskan kolom itu ke sana akan gagal.
+     */
+    protected bool $storesDppOther = false;
+
     protected array $indexWith = [];
 
     protected int $perPage = 20;
@@ -237,10 +245,18 @@ abstract class LineItemDocumentController extends Controller
     /** Strip anything the item table has no column for. */
     protected function mapRows(array $rows): array
     {
-        return array_map(fn (array $row) => Arr::only($row, [
+        $columns = [
             'product_id', 'description', 'quantity', 'unit_price',
             'discount_percent', 'tax_rate', 'tax_amount', 'subtotal', 'total',
-        ]), $rows);
+        ];
+
+        // Hanya dokumen berpajak yang punya kolomnya; permintaan pembelian
+        // tidak, jadi kolomnya tidak boleh ikut disertakan di sana.
+        if ($this->storesDppOther) {
+            $columns[] = 'dpp_other';
+        }
+
+        return array_map(fn (array $row) => Arr::only($row, $columns), $rows);
     }
 
     /** Shape stored items the way resources/js/doc-items.js expects them. */

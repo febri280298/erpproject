@@ -31,6 +31,8 @@ class QuotationController extends LineItemDocumentController
 
     protected string $viewPath = 'sales.quotations';
 
+    protected bool $storesDppOther = true;
+
     protected array $indexWith = ['customer:id,name'];
 
     protected function headerRules(?Model $document = null): array

@@ -11,7 +11,7 @@ class SalesOrderItem extends Model
     protected $fillable = [
         'sales_order_id', 'product_id', 'description', 'quantity', 'delivered_qty',
         'invoiced_qty', 'unit_price', 'discount_percent', 'tax_rate', 'tax_amount',
-        'subtotal', 'total',
+        'subtotal', 'dpp_other', 'total',
     ];
 
     protected $casts = [
@@ -23,6 +23,7 @@ class SalesOrderItem extends Model
         'tax_rate' => 'decimal:4',
         'tax_amount' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'dpp_other' => 'decimal:2',
         'total' => 'decimal:2',
     ];
 

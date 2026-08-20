@@ -33,6 +33,8 @@ class PurchaseInvoiceController extends LineItemDocumentController
 
     protected string $viewPath = 'purchasing.invoices';
 
+    protected bool $storesDppOther = true;
+
     protected string $priceField = 'purchase_price';
 
     protected array $indexWith = ['supplier:id,name', 'purchaseOrder:id,po_no'];

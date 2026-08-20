@@ -31,6 +31,8 @@ class SalesOrderController extends LineItemDocumentController
 
     protected string $viewPath = 'sales.orders';
 
+    protected bool $storesDppOther = true;
+
     protected array $indexWith = ['customer:id,name', 'warehouse:id,name'];
 
     protected function headerRules(?Model $document = null): array

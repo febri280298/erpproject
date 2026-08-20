@@ -37,6 +37,8 @@ class SalesInvoiceController extends LineItemDocumentController
 
     protected string $viewPath = 'sales.invoices';
 
+    protected bool $storesDppOther = true;
+
     protected array $indexWith = ['customer:id,name', 'salesOrder:id,so_no'];
 
     public function __construct(

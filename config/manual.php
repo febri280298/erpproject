@@ -60,6 +60,7 @@ return [
                 '<span class="path">Pengaturan → Pengaturan Sistem → Profil Perusahaan</span> — isi nama, alamat, telepon, email, NPWP, dan unggah logo. Semuanya muncul di kop dokumen cetak.',
                 'Di halaman yang sama buka <span class="path">Modul</span>. Nyalakan hanya area yang dipakai; menu yang dimatikan hilang dari sidebar dan alamatnya membalas 404.',
                 'Buka <span class="path">PPN & DPP Nilai Lain</span>. Biarkan mati bila memakai tarif 11%. Untuk skema 12% atas 11/12, ubah dulu pajak default menjadi 12% — sistem menolak menyimpan bila urutannya terbalik.',
+                'Saat DPP Nilai Lain aktif, tabel rincian dokumen menambah kolom <strong>DPP Nilai Lain</strong> di sebelah DPP, sehingga dasar pengenaan tiap baris terlihat satu per satu — bukan hanya jumlah totalnya. Angka itu ikut tersimpan pada barisnya, jadi cetak ulang faktur lama tetap menunjukkan dasar pengenaan yang dulu dipakai meski setelannya kemudian diubah.',
                 'Periksa <span class="path">Pemetaan Akun</span>, pastikan tidak ada yang kosong. Inilah akun yang dipakai saat dokumen diposting.',
                 'Di <span class="path">Pengaturan Operasional</span> ada <strong>Tampilkan 2 angka di belakang koma</strong>. Bawaannya mati karena harga bahan bangunan hampir selalu bulat. Nyalakan bila memang perlu sen — nilainya tetap tersimpan penuh, jadi menyalakan atau mematikan tidak mengubah data, hanya tampilannya.',
             ],

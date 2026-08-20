@@ -38,6 +38,16 @@
     </div>
 </div>
 
+@php
+    // Sama seperti di halaman detail: kolom DPP Nilai Lain hanya dicetak bila
+    // dasar pengenaan tiap baris memang berbeda dari DPP-nya, dan diperiksa dari
+    // angka yang tersimpan agar cetakan ulang faktur lama tetap sama persis.
+    $showDppOther = $showPrice && $document->items->contains(
+        fn ($item) => isset($item->dpp_other)
+            && round((float) $item->dpp_other, 2) !== round((float) $item->subtotal, 2)
+    );
+@endphp
+
 <table class="table table-bordered table-sm">
     <thead>
     <tr>
@@ -46,9 +56,12 @@
         <th class="text-num" style="width:{{ $showPrice ? '9%' : '14%' }}">Qty</th>
         <th style="width:{{ $showPrice ? '8%' : '14%' }}">Satuan</th>
         @if($showPrice)
-            <th class="text-num" style="width:15%">Harga</th>
-            <th class="text-num" style="width:7%">Disc</th>
-            <th class="text-num" style="width:17%">Jumlah</th>
+            <th class="text-num" style="width:{{ $showDppOther ? '12%' : '15%' }}">Harga</th>
+            <th class="text-num" style="width:6%">Disc</th>
+            <th class="text-num" style="width:{{ $showDppOther ? '13%' : '17%' }}">Jumlah</th>
+            @if($showDppOther)
+                <th class="text-num" style="width:14%">DPP Nilai Lain</th>
+            @endif
         @endif
     </tr>
     </thead>
@@ -69,6 +82,9 @@
                 <td class="text-num">{{ rupiah($item->unit_price, null, false) }}</td>
                 <td class="text-num">{{ fnum($item->discount_percent) }}%</td>
                 <td class="text-num">{{ rupiah($item->subtotal, null, false) }}</td>
+                @if($showDppOther)
+                    <td class="text-num">{{ rupiah($item->dpp_other, null, false) }}</td>
+                @endif
             @endif
         </tr>
     @endforeach

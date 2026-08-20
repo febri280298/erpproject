@@ -8,6 +8,15 @@
      */
     $showPrice = $showPrice ?? true;
     $extraColumns = $extraColumns ?? [];
+
+    // Kolom DPP Nilai Lain hanya berarti bila dasar pengenaannya memang berbeda
+    // dari DPP. Diperiksa dari nilai yang TERSIMPAN, bukan dari setelan saat ini,
+    // supaya dokumen lama tetap menampilkan angka yang dulu dipakai meski
+    // setelannya sudah diubah.
+    $showDppOther = $showPrice && $items->contains(
+        fn ($item) => isset($item->dpp_other)
+            && round((float) $item->dpp_other, 2) !== round((float) $item->subtotal, 2)
+    );
 @endphp
 
 <div class="table-responsive">
@@ -21,6 +30,10 @@
             @if($showPrice)
                 <th class="text-num">Harga</th>
                 <th class="text-num">Disc</th>
+                @if($showDppOther)
+                    <th class="text-num">DPP</th>
+                    <th class="text-num">DPP Nilai Lain</th>
+                @endif
                 <th class="text-num">Pajak</th>
                 <th class="text-num">Jumlah</th>
             @endif
@@ -44,6 +57,10 @@
                 @if($showPrice)
                     <td class="text-num">{{ rupiah($item->unit_price) }}</td>
                     <td class="text-num">{{ fnum($item->discount_percent) }}%</td>
+                    @if($showDppOther)
+                        <td class="text-num">{{ rupiah($item->subtotal) }}</td>
+                        <td class="text-num">{{ rupiah($item->dpp_other) }}</td>
+                    @endif
                     <td class="text-num">{{ rupiah($item->tax_amount) }}</td>
                     <td class="text-num fw-bold">{{ rupiah($item->total) }}</td>
                 @endif
