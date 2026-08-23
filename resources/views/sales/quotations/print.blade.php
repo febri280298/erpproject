@@ -1,7 +1,7 @@
 @extends('layouts.print')
 
-@section('title', 'Penawaran ' . $document->quotation_no)
-@section('doc-title', 'Surat Penawaran Harga')
+@section('title', 'Quotation ' . $document->quotation_no)
+@section('doc-title', 'Quotation')
 @section('doc-subtitle', $document->quotation_no)
 
 @section('content')

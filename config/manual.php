@@ -230,7 +230,7 @@ return [
             'tabel' => [
                 'kepala' => ['Tipe faktur', 'Perlakuan pajak', 'Judul cetakan'],
                 'baris' => [
-                    [SalesInvoice::TYPES[SalesInvoice::TYPE_PPN], 'Tiap baris ikut tarif pajak produknya', 'Faktur Pajak'],
+                    [SalesInvoice::TYPES[SalesInvoice::TYPE_PPN], 'Tiap baris ikut tarif pajak produknya', 'Invoice'],
                     [SalesInvoice::TYPES[SalesInvoice::TYPE_NON_PPN], 'Seluruh baris dipaksa 0%', 'Invoice'],
                     [SalesInvoice::TYPES[SalesInvoice::TYPE_JASA], 'Ber-PPN, dipotong PPh 23', 'Invoice Jasa'],
                 ],

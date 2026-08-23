@@ -1,10 +1,12 @@
 @extends('layouts.print')
 
-@section('title', 'Faktur ' . $document->invoice_no)
+@section('title', 'Invoice ' . $document->invoice_no)
+{{-- Semua tipe dicetak sebagai "Invoice"; yang membedakan tampak dari blok
+     pajaknya, bukan dari judulnya. Faktur pajak resmi adalah dokumen ber-nomor
+     seri DJP yang terbit dari e-Faktur, bukan cetakan ini. --}}
 @section('doc-title', match($document->invoice_type) {
-    'non_ppn' => 'Invoice',
     'jasa' => 'Invoice Jasa',
-    default => 'Faktur Pajak',
+    default => 'Invoice',
 })
 @section('doc-subtitle', $document->invoice_no)
 
