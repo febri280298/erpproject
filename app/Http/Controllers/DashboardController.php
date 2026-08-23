@@ -139,17 +139,36 @@ class DashboardController extends Controller
 
         $tarif = (float) Tax::where('is_default', true)->value('rate');
 
-        if (abs($tarif - 12) < 0.01) {
-            return null;
+        if (abs($tarif - 12) >= 0.01) {
+            return sprintf(
+                'DPP Nilai Lain (%s) aktif, tetapi pajak default masih %s%%. '
+                .'Pajak yang dihitung menjadi %s%% — kurang dari seharusnya.',
+                $calculator->ratioLabel(),
+                fnum($tarif),
+                fnum($tarif * $calculator->ratio()),
+            );
         }
 
-        return sprintf(
-            'DPP Nilai Lain (%s) aktif, tetapi pajak default masih %s%%. '
-            .'Pajak yang dihitung menjadi %s%% — kurang dari seharusnya.',
-            $calculator->ratioLabel(),
-            fnum($tarif),
-            fnum($tarif * $calculator->ratio()),
-        );
+        // Tarif default yang benar belum cukup: tarif yang dipakai baris dokumen
+        // berasal dari pajak yang melekat pada PRODUKNYA. Satu produk yang
+        // tertinggal di 11% menghasilkan pajak efektif 10,08% pada barisnya
+        // sendiri, dan tidak ada gejala apa pun di layar yang menunjukkannya.
+        $salahTarif = Product::query()
+            ->where('is_active', true)
+            ->whereHas('tax', fn ($q) => $q->where('rate', '>', 0)->where('rate', '!=', 12))
+            ->count();
+
+        if ($salahTarif > 0) {
+            return sprintf(
+                'DPP Nilai Lain (%s) aktif dan pajak default sudah 12%%, tetapi %s produk '
+                .'masih memakai tarif PPN selain 12%%. Baris dokumen yang memakai produk itu '
+                .'dihitung di bawah 11%% dari harga jual — kurang bayar tanpa gejala.',
+                $calculator->ratioLabel(),
+                fnum($salahTarif, 0),
+            );
+        }
+
+        return null;
     }
 
     private function pendingApprovals(): array
