@@ -15,6 +15,6 @@
             'Gudang Tujuan' => $document->warehouse?->name,
             'Termin' => $document->paymentTerm?->name ?? '—',
         ],
-        'signatures' => ['Dibuat oleh', 'Disetujui oleh', 'Pemasok'],
+        'signatures' => ['Disetujui oleh'],
     ])
 @endsection

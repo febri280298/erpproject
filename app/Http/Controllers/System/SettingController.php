@@ -59,6 +59,9 @@ class SettingController extends Controller
             'company_phone' => ['nullable', 'string', 'max:50'],
             'company_email' => ['nullable', 'email', 'max:150'],
             'company_npwp' => ['nullable', 'string', 'max:30'],
+            'company_bank_name' => ['nullable', 'string', 'max:60'],
+            'company_bank_account' => ['nullable', 'string', 'max:40'],
+            'company_bank_holder' => ['nullable', 'string', 'max:150'],
             'company_logo' => ['nullable', 'image', 'max:1024'],
         ]);
 

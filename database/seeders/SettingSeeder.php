@@ -70,6 +70,9 @@ class SettingSeeder extends Seeder
             'company_phone' => '(021) 1234-5678',
             'company_email' => 'info@bonecomtricom.com',
             'company_npwp' => '00.000.000.0-000.000',
+            'company_bank_name' => '',
+            'company_bank_account' => '',
+            'company_bank_holder' => '',
         ], 'company');
 
         // Account mappings default to the COA codes seeded by ChartOfAccountSeeder.

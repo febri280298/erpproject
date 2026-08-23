@@ -20,7 +20,8 @@
             'Jatuh Tempo' => fdate($document->due_date),
             'No. SO' => $document->salesOrder?->so_no ?? '—',
         ],
-        'signatures' => ['Hormat kami', 'Penerima'],
+        'signatures' => ['Hormat kami'],
+        'showBank' => true,
         'footerNote' => setting('invoice_footer_note'),
     ])
 @endsection

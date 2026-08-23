@@ -94,6 +94,10 @@ class SettingService
             'email' => $this->get('company_email', ''),
             'npwp' => $this->get('company_npwp', ''),
             'logo' => $this->get('company_logo'),
+            // Dicetak pada faktur sebagai tujuan transfer.
+            'bank_name' => $this->get('company_bank_name', ''),
+            'bank_account' => $this->get('company_bank_account', ''),
+            'bank_holder' => $this->get('company_bank_holder', ''),
         ];
     }
 }

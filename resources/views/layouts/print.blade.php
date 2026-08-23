@@ -294,17 +294,47 @@
 
         /* -------------------------------------------------------- Tanda tangan */
 
-        .signatures {
+        /*
+         * Penutup dokumen: tanda tangan di kiri, sisanya di kanan.
+         *
+         * Dokumen bertanda tangan tunggal (faktur, PO) hanya memakai separuh
+         * kiri, sehingga separuh kanannya bisa dipakai informasi rekening.
+         * Dokumen bertanda tangan banyak (surat jalan, penerimaan barang) tetap
+         * melebar penuh seperti semula.
+         */
+        .closing {
             display: flex;
-            gap: 6mm;
+            gap: 8mm;
             margin-top: 10mm;
-            text-align: center;
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
+        .closing > * {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .signatures {
+            display: flex;
+            gap: 6mm;
+            text-align: center;
+        }
+
         .signatures > * {
             flex: 1 1 0;
+        }
+
+        /* Blok rekening diberi bingkai bergaris tebal di kiri, sama seperti
+           Terbilang — keduanya informasi yang harus langsung ketemu. */
+        .pay-box {
+            border: .5pt solid var(--garis);
+            border-left: 1.6pt solid var(--tinta);
+            padding: 2.5mm 3mm;
+        }
+
+        .pay-box .meta td {
+            padding: .8mm 0;
         }
 
         .sign-rule {

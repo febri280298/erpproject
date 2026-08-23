@@ -15,6 +15,9 @@
     $signatures = $signatures ?? ['Dibuat oleh', 'Disetujui oleh', 'Diterima oleh'];
     $footerNote = $footerNote ?? null;
 
+    // Blok rekening hanya untuk dokumen tagihan, dan hanya bila datanya diisi.
+    $showBank = ($showBank ?? false) && filled($company['bank_account'] ?? null);
+
     /*
      * Kolom DPP Nilai Lain hanya dicetak bila dasar pengenaan tiap baris memang
      * berbeda dari DPP-nya, dan diperiksa dari angka yang TERSIMPAN — bukan dari
@@ -205,19 +208,42 @@
     <p class="note-block mt-3">{{ $footerNote }}</p>
 @endif
 
-<div class="signatures">
-    @foreach($signatures as $i => $signature)
-        <div>
-            {{-- Tanggal hanya di kolom terakhir, seperti lazimnya surat resmi;
-                 diulang di tiap kolom justru terbaca berantakan. Kota sengaja
-                 tidak dicantumkan karena profil perusahaan belum menyimpannya —
-                 menebaknya dari alamat lebih berisiko salah daripada berguna. --}}
-            <div class="label" style="visibility:{{ $loop->last ? 'visible' : 'hidden' }}">
-                {{ fdate($document->date ?? now()) }}
+<div class="closing">
+    <div class="signatures">
+        @foreach($signatures as $signature)
+            <div>
+                {{-- Tanggal hanya di kolom terakhir, seperti lazimnya surat resmi;
+                     diulang di tiap kolom justru terbaca berantakan. Kota sengaja
+                     tidak dicantumkan karena profil perusahaan belum menyimpannya —
+                     menebaknya dari alamat lebih berisiko salah daripada berguna. --}}
+                <div class="label" style="visibility:{{ $loop->last ? 'visible' : 'hidden' }}">
+                    {{ fdate($document->date ?? now()) }}
+                </div>
+                <div style="font-size:8.5pt; margin-top:1mm">{{ $signature }}</div>
+                <div style="height:17mm"></div>
+                <div class="sign-rule">Nama &amp; Tanda Tangan</div>
             </div>
-            <div style="font-size:8.5pt; margin-top:1mm">{{ $signature }}</div>
-            <div style="height:17mm"></div>
-            <div class="sign-rule">Nama &amp; Tanda Tangan</div>
+        @endforeach
+    </div>
+
+    {{-- Sisi kanan hanya ada bila tanda tangannya tunggal; kalau tidak, kolom
+         tanda tangan yang melebar penuh. --}}
+    @if(count($signatures) === 1)
+        <div>
+            @if($showBank)
+                <div class="pay-box">
+                    <div class="label">Pembayaran ditransfer ke</div>
+                    <table class="meta" style="margin-top:1.5mm">
+                        @if($company['bank_name'])
+                            <tr><td class="k">Bank</td><td class="v">{{ $company['bank_name'] }}</td></tr>
+                        @endif
+                        <tr><td class="k">Nomor Rekening</td><td class="v">{{ $company['bank_account'] }}</td></tr>
+                        @if($company['bank_holder'])
+                            <tr><td class="k">Atas Nama</td><td class="v">{{ $company['bank_holder'] }}</td></tr>
+                        @endif
+                    </table>
+                </div>
+            @endif
         </div>
-    @endforeach
+    @endif
 </div>

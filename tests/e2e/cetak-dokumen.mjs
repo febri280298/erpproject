@@ -123,7 +123,7 @@ for (const [nama, daftar, adaHarga] of DOKUMEN) {
     lapor('Tidak meluber dari kertas', d.meluber.length === 0,
         d.meluber.length ? d.meluber.join(', ') : 'pas dalam 186 mm');
     lapor('Kop & identitas pihak ada', d.adaKop && d.adaPihak, '');
-    lapor('Blok tanda tangan ada', d.adaTtd >= 2, `${d.adaTtd} kolom`);
+    lapor('Blok tanda tangan ada', d.adaTtd >= 1, `${d.adaTtd} kolom`);
 
     if (adaHarga) {
         lapor('Blok total & terbilang ada', d.adaTotal && d.adaTerbilang, '');

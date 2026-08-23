@@ -93,6 +93,20 @@
                         <x-form.input name="company_phone" label="Telepon" :value="$settings['company_phone'] ?? ''" col="col-md-6" />
                         <x-form.input name="company_email" label="Email" type="email" :value="$settings['company_email'] ?? ''" col="col-md-6" />
                         <x-form.textarea name="company_address" label="Alamat" :value="$settings['company_address'] ?? ''" rows="3" />
+
+                        <div class="col-12"><hr class="my-1"></div>
+                        <div class="col-12">
+                            <div class="text-secondary small">
+                                Rekening di bawah dicetak pada faktur penjualan sebagai tujuan transfer.
+                                Dikosongkan berarti blok itu tidak ikut tercetak.
+                            </div>
+                        </div>
+                        <x-form.input name="company_bank_name" label="Bank" :value="$settings['company_bank_name'] ?? ''"
+                                      col="col-md-3" placeholder="BCA" />
+                        <x-form.input name="company_bank_account" label="Nomor Rekening" :value="$settings['company_bank_account'] ?? ''"
+                                      col="col-md-4" placeholder="5745884943" />
+                        <x-form.input name="company_bank_holder" label="Atas Nama" :value="$settings['company_bank_holder'] ?? ''"
+                                      col="col-md-5" placeholder="PT Pilar Utama Material" />
                         <div class="col-md-6">
                             <label class="form-label" for="company_logo">Logo</label>
                             <input type="file" name="company_logo" id="company_logo" class="form-control" accept="image/*">
