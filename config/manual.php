@@ -36,6 +36,11 @@ return [
             'isi' => 'Detail, Ubah, dan Hapus tidak ditaruh sebagai kolom sendiri melainkan di tombol <strong>Aksi</strong> pada ujung kanan tiap baris, supaya tabel tetap terbaca. Isi menunya berbeda-beda mengikuti wewenang peran yang sedang masuk.',
         ],
         [
+            'ikon' => 'ti-player-play',
+            'judul' => 'Menyalakan sistem dari desktop',
+            'isi' => 'Klik pintasan <strong>ERP Peak</strong> di desktop: MySQL dinyalakan lebih dulu, lalu server aplikasi, lalu browser terbuka sendiri. Aman diklik berulang — yang sudah menyala tidak dinyalakan dua kali. Untuk mematikannya pakai pintasan <strong>ERP Peak - Matikan</strong> supaya basis datanya ditutup baik-baik, bukan dengan menutup jendelanya begitu saja.',
+        ],
+        [
             'ikon' => 'ti-layout-dashboard',
             'judul' => 'Tiap modul punya ringkasannya sendiri',
             'isi' => 'Selain Dashboard utama, tiap grup di sidebar diawali menu <strong>Ringkasan</strong> — Ringkasan Pembelian, Penjualan, Stok, Akuntansi, dan Master. Isinya khusus modul itu: angka pentingnya, alur kerjanya beserta jumlah dokumen yang masih tertahan di tiap tahap, dan daftar yang perlu ditindaklanjuti. Tahap yang berwarna berarti ada yang menunggu dikerjakan; yang abu-abu berarti kosong.',
