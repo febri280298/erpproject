@@ -25,3 +25,4 @@ Thumbs.db
 
 # Hasil uji antarmuka (tangkapan layar & video)
 /tests/e2e/hasil
+/storage/*.backup
