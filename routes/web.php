@@ -6,6 +6,11 @@ use App\Http\Controllers\Accounting\FiscalPeriodController;
 use App\Http\Controllers\Accounting\JournalController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Dashboard\AccountingDashboardController;
+use App\Http\Controllers\Dashboard\InventoryDashboardController;
+use App\Http\Controllers\Dashboard\MasterDashboardController;
+use App\Http\Controllers\Dashboard\PurchasingDashboardController;
+use App\Http\Controllers\Dashboard\SalesDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Hr\AttendanceController;
 use App\Http\Controllers\Hr\DepartmentController;
@@ -101,6 +106,31 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::redirect('/', '/dashboard')->name('home');
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:dashboard.view');
+
+    /*
+     * Dashboard per modul.
+     *
+     * Izinnya sengaja memakai izin dokumen inti tiap modul, bukan
+     * dashboard.view: yang berhak melihat ringkasan pembelian adalah orang yang
+     * memang boleh melihat PO. Tanpa itu, staf penjualan ikut melihat harga
+     * beli hanya karena punya akses dashboard.
+     */
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('master', MasterDashboardController::class)
+            ->name('master')->middleware('permission:product.view');
+
+        Route::get('inventory', InventoryDashboardController::class)
+            ->name('inventory')->middleware('permission:stock.view');
+
+        Route::get('purchasing', PurchasingDashboardController::class)
+            ->name('purchasing')->middleware(['module:purchasing', 'permission:purchase-order.view']);
+
+        Route::get('sales', SalesDashboardController::class)
+            ->name('sales')->middleware(['module:sales', 'permission:sales-order.view']);
+
+        Route::get('accounting', AccountingDashboardController::class)
+            ->name('accounting')->middleware(['module:accounting', 'permission:journal.view']);
+    });
     Route::get('search', SearchController::class)->name('search');
 
     // Buku panduan; isinya di config/manual.php, dibaca semua peran.

@@ -335,6 +335,7 @@ return [
             'label' => 'Data Master',
             'icon' => 'ti ti-database',
             'children' => [
+                ['label' => 'Ringkasan Master', 'hint' => 'Kelengkapan data produk & mitra', 'route' => 'dashboard.master', 'permission' => 'product.view'],
                 ['label' => 'Produk / Barang', 'hint' => 'Daftar barang & jasa', 'route' => 'products.index', 'permission' => 'product.view'],
                 ['label' => 'Upload Produk', 'hint' => 'Impor massal dari Excel', 'route' => 'products.import', 'permission' => 'product.create'],
                 ['label' => 'Customer & Supplier', 'hint' => 'Data pelanggan dan pemasok', 'route' => 'partners.index', 'permission' => 'partner.view'],
@@ -351,6 +352,7 @@ return [
             'icon' => 'ti ti-shopping-cart',
             'module' => 'purchasing',
             'children' => [
+                ['label' => 'Ringkasan Pembelian', 'hint' => 'Belanja, utang, dokumen tertahan', 'route' => 'dashboard.purchasing', 'permission' => 'purchase-order.view'],
                 ['label' => 'Permintaan Pembelian (PR)', 'hint' => 'Pengajuan kebutuhan barang', 'step' => '0', 'route' => 'purchase-requisitions.index', 'permission' => 'purchase-requisition.view', 'module' => 'purchase_requisition'],
                 ['label' => 'Pesanan Pembelian (PO)', 'hint' => 'Pesan barang ke supplier', 'step' => '1', 'route' => 'purchase-orders.index', 'permission' => 'purchase-order.view'],
                 ['label' => 'Penerimaan Barang (GRN)', 'hint' => 'Barang datang, stok bertambah', 'step' => '2', 'route' => 'goods-receipts.index', 'permission' => 'goods-receipt.view'],
@@ -363,6 +365,7 @@ return [
             'icon' => 'ti ti-receipt',
             'module' => 'sales',
             'children' => [
+                ['label' => 'Ringkasan Penjualan', 'hint' => 'Omzet, piutang, dokumen tertahan', 'route' => 'dashboard.sales', 'permission' => 'sales-order.view'],
                 ['label' => 'Penawaran (Quotation)', 'hint' => 'Penawaran harga ke calon customer', 'step' => '0', 'route' => 'quotations.index', 'permission' => 'quotation.view', 'module' => 'quotation'],
                 ['label' => 'Pesanan Penjualan (SO)', 'hint' => 'Order masuk dari customer', 'step' => '1', 'route' => 'sales-orders.index', 'permission' => 'sales-order.view'],
                 ['label' => 'Surat Jalan (DO)', 'hint' => 'Kirim barang, stok berkurang', 'step' => '2', 'route' => 'delivery-orders.index', 'permission' => 'delivery-order.view'],
@@ -376,6 +379,7 @@ return [
             'icon' => 'ti ti-building-warehouse',
             'module' => 'inventory',
             'children' => [
+                ['label' => 'Ringkasan Stok', 'hint' => 'Nilai persediaan & stok menipis', 'route' => 'dashboard.inventory', 'permission' => 'stock.view'],
                 ['label' => 'Stok Barang', 'hint' => 'Sisa stok per gudang', 'route' => 'stocks.index', 'permission' => 'stock.view'],
                 ['label' => 'Kartu Stok', 'hint' => 'Riwayat keluar-masuk barang', 'route' => 'stocks.card', 'permission' => 'stock.view'],
                 ['label' => 'Transfer Gudang', 'hint' => 'Pindah stok antar gudang', 'route' => 'stock-transfers.index', 'permission' => 'stock-transfer.view'],
@@ -396,6 +400,7 @@ return [
             'icon' => 'ti ti-calculator',
             'module' => 'accounting',
             'children' => [
+                ['label' => 'Ringkasan Akuntansi', 'hint' => 'Kas, laba, keseimbangan jurnal', 'route' => 'dashboard.accounting', 'permission' => 'journal.view'],
                 ['label' => 'Bagan Akun (COA)', 'hint' => 'Daftar akun pembukuan', 'route' => 'accounts.index', 'permission' => 'account.view'],
                 ['label' => 'Jurnal Umum', 'hint' => 'Entri debit & kredit', 'route' => 'journals.index', 'permission' => 'journal.view'],
                 ['label' => 'Buku Besar', 'hint' => 'Mutasi per akun', 'route' => 'accounting.ledger', 'permission' => 'accounting-report.view'],
