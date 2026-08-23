@@ -33,6 +33,12 @@ class PurchaseOrderController extends LineItemDocumentController
 
     protected bool $storesDppOther = true;
 
+    /** Nomor PO memuat inisial supplier: PO/GB/2026/08/0001. */
+    protected function numberInitial(array $data): ?string
+    {
+        return Partner::find($data['partner_id'] ?? null)?->initial;
+    }
+
     protected string $priceField = 'purchase_price';
 
     protected array $indexWith = ['supplier:id,name', 'warehouse:id,name'];

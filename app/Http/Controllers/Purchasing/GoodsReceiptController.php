@@ -79,7 +79,7 @@ class GoodsReceiptController extends Controller
 
         $receipt = DB::transaction(function () use ($data, $order) {
             $receipt = GoodsReceipt::create([
-                'grn_no' => $this->numbers->next('goods_receipt', $data['date']),
+                'grn_no' => $this->numbers->next('goods_receipt', $data['date'], $order->supplier?->initial),
                 'date' => $data['date'],
                 'purchase_order_id' => $order->id,
                 'partner_id' => $order->partner_id,

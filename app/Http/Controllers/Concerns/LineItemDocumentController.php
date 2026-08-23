@@ -112,7 +112,9 @@ abstract class LineItemDocumentController extends Controller
                 Arr::except($data, $this->headerExcept()),
                 $totals,
                 [
-                    $this->numberField => $this->numbers->next($this->numberModule, $data['date']),
+                    $this->numberField => $this->numbers->next(
+                        $this->numberModule, $data['date'], $this->numberInitial($data)
+                    ),
                     'status' => 'draft',
                     'created_by' => Auth::id(),
                 ],
@@ -243,6 +245,19 @@ abstract class LineItemDocumentController extends Controller
     protected function afterSave(Model $document, array $data): void {}
 
     /** Strip anything the item table has no column for. */
+    /**
+     * Inisial mitra yang disisipkan ke nomor dokumen, bila modulnya memakai.
+     *
+     * Bawaannya null: kebanyakan dokumen tidak menyisipkannya, dan yang memakai
+     * cukup menimpa method ini.
+     *
+     * @param  array<string,mixed>  $data
+     */
+    protected function numberInitial(array $data): ?string
+    {
+        return null;
+    }
+
     protected function mapRows(array $rows): array
     {
         $columns = [

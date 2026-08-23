@@ -121,7 +121,7 @@ return [
                 'Simpan. Statusnya <strong>Draft</strong> — barangnya belum bisa diterima.',
             ],
             'periksa' => [
-                'Nomor dokumen terbentuk, contohnya <span class="doc">PO/2026/08/0001</span>.',
+                'Nomor dokumen terbentuk, contohnya <span class="doc">PO/GB/2026/08/0001</span> — ruas kedua adalah <strong>inisial mitra</strong>. Purchase Order, Penerimaan Barang, dan Surat Jalan menyisipkannya; dokumen lain tidak. Di form, ruas itu tampil sebagai <span class="doc">(mitra)</span> karena mitranya baru diketahui saat disimpan. Mitra yang belum berinisial menghasilkan nomor tanpa ruas itu.',
                 'Jumlah kolom <strong>DPP</strong> sama dengan Subtotal di rekap bawah.',
                 'Tombol <strong>Setujui</strong> tidak ada — memang bukan wewenang peran ini.',
             ],

@@ -14,6 +14,26 @@ use Illuminate\Support\Facades\DB;
  */
 class DocumentNumberService
 {
+    /**
+     * Modul yang nomornya menyisipkan inisial mitra: `PO/GB/2026/08/0001`.
+     *
+     * Urutan pencacahnya tetap satu per modul, bukan per mitra. Dengan begitu
+     * nomornya dijamin unik walau inisial mitra kelak diubah, dan tidak ada dua
+     * dokumen berbeda yang bisa berakhir dengan nomor sama.
+     */
+    public const WITH_PARTNER_INITIAL = [
+        'purchase_order',
+        'goods_receipt',
+        'delivery_order',
+    ];
+
+    /**
+     * Ditampilkan pada pratinjau di form, saat mitranya belum dipilih.
+     * Tanpa penanda ini pratinjau memperlihatkan nomor yang berbeda dari yang
+     * akhirnya tersimpan, dan itu terbaca seperti sistem yang salah hitung.
+     */
+    private const PLACEHOLDER = '(mitra)';
+
     /** Modules seeded on install; `prefix` doubles as the fallback. */
     public const DEFAULTS = [
         'purchase_requisition' => ['prefix' => 'PR', 'reset_period' => 'monthly'],
@@ -36,11 +56,11 @@ class DocumentNumberService
         'payroll' => ['prefix' => 'PAY', 'reset_period' => 'yearly'],
     ];
 
-    public function next(string $module, ?string $date = null): string
+    public function next(string $module, ?string $date = null, ?string $initial = null): string
     {
         $when = $date ? Carbon::parse($date) : Carbon::now();
 
-        return DB::transaction(function () use ($module, $when) {
+        return DB::transaction(function () use ($module, $when, $initial) {
             $sequence = NumberSequence::query()
                 ->where('module', $module)
                 ->lockForUpdate()
@@ -71,7 +91,7 @@ class DocumentNumberService
             $sequence->period_month = $when->month;
             $sequence->save();
 
-            return $this->format($sequence, $when, $number);
+            return $this->format($sequence, $when, $number, $this->segment($module, $initial));
         });
     }
 
@@ -84,19 +104,46 @@ class DocumentNumberService
         };
     }
 
-    private function format(NumberSequence $sequence, Carbon $when, int $number): string
+    /**
+     * Ruas inisial untuk modul ini, atau null bila tidak dipakai.
+     *
+     * Mitra yang belum berinisial tidak diberi penanda apa pun — nomornya
+     * kembali ke bentuk tanpa ruas itu. Menuliskan penanda ke nomor yang
+     * benar-benar tersimpan justru mengabadikan kekurangan data.
+     */
+    private function segment(string $module, ?string $initial): ?string
+    {
+        if (! in_array($module, self::WITH_PARTNER_INITIAL, true)) {
+            return null;
+        }
+
+        $bersih = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $initial));
+
+        return $bersih !== '' ? $bersih : null;
+    }
+
+    private function format(NumberSequence $sequence, Carbon $when, int $number, ?string $initial = null): string
     {
         $padded = str_pad((string) $number, $sequence->padding, '0', STR_PAD_LEFT);
 
-        return match ($sequence->reset_period) {
-            'monthly' => sprintf('%s/%s/%s/%s', $sequence->prefix, $when->format('Y'), $when->format('m'), $padded),
-            'yearly' => sprintf('%s/%s/%s', $sequence->prefix, $when->format('Y'), $padded),
-            default => sprintf('%s/%s', $sequence->prefix, $padded),
+        $ruas = array_filter([$sequence->prefix, $initial]);
+
+        $ruas = match ($sequence->reset_period) {
+            'monthly' => [...$ruas, $when->format('Y'), $when->format('m'), $padded],
+            'yearly' => [...$ruas, $when->format('Y'), $padded],
+            default => [...$ruas, $padded],
         };
+
+        return implode('/', $ruas);
     }
 
-    /** Preview only — does not consume a number. */
-    public function peek(string $module, ?string $date = null): string
+    /**
+     * Pratinjau saja — tidak memakai nomor.
+     *
+     * Mitranya belum dipilih saat form dibuka, jadi ruas inisialnya ditampilkan
+     * sebagai penanda agar bentuk nomornya sudah terbaca sejak awal.
+     */
+    public function peek(string $module, ?string $date = null, ?string $initial = null): string
     {
         $when = $date ? Carbon::parse($date) : Carbon::now();
         $sequence = NumberSequence::where('module', $module)->first();
@@ -108,6 +155,9 @@ class DocumentNumberService
 
         $number = $this->periodChanged($sequence, $when) ? 1 : $sequence->next_number;
 
-        return $this->format($sequence, $when, $number);
+        $ruas = $this->segment($module, $initial)
+            ?? (in_array($module, self::WITH_PARTNER_INITIAL, true) ? self::PLACEHOLDER : null);
+
+        return $this->format($sequence, $when, $number, $ruas);
     }
 }

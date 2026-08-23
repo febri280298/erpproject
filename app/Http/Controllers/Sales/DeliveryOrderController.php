@@ -106,7 +106,7 @@ class DeliveryOrderController extends Controller
                 $customer = $order?->customer ?? Partner::find($data['partner_id']);
 
                 $delivery = DeliveryOrder::create([
-                    'do_no' => $this->numbers->next('delivery_order', $data['date']),
+                    'do_no' => $this->numbers->next('delivery_order', $data['date'], $customer?->initial),
                     'date' => $data['date'],
                     'sales_order_id' => $order?->id,
                     'partner_id' => $order?->partner_id ?? $data['partner_id'],
