@@ -209,25 +209,9 @@
 @endif
 
 <div class="closing">
-    <div class="signatures">
-        @foreach($signatures as $signature)
-            <div>
-                {{-- Tanggal hanya di kolom terakhir, seperti lazimnya surat resmi;
-                     diulang di tiap kolom justru terbaca berantakan. Kota sengaja
-                     tidak dicantumkan karena profil perusahaan belum menyimpannya —
-                     menebaknya dari alamat lebih berisiko salah daripada berguna. --}}
-                <div class="label" style="visibility:{{ $loop->last ? 'visible' : 'hidden' }}">
-                    {{ fdate($document->date ?? now()) }}
-                </div>
-                <div style="font-size:8.5pt; margin-top:1mm">{{ $signature }}</div>
-                <div style="height:17mm"></div>
-                <div class="sign-rule">Nama &amp; Tanda Tangan</div>
-            </div>
-        @endforeach
-    </div>
-
-    {{-- Sisi kanan hanya ada bila tanda tangannya tunggal; kalau tidak, kolom
-         tanda tangan yang melebar penuh. --}}
+    {{-- Kolom kiri hanya ada bila tanda tangannya tunggal. Pada faktur ia
+         berisi rekening tujuan transfer; pada PO dibiarkan kosong supaya
+         tanda tangannya tetap jatuh di kanan. --}}
     @if(count($signatures) === 1)
         <div>
             @if($showBank)
@@ -246,4 +230,24 @@
             @endif
         </div>
     @endif
+
+    {{-- Tanda tangan di kanan, sebagaimana lazimnya surat resmi. Dokumen
+         bertanda tangan banyak tetap melebar penuh karena kolom kiri di atas
+         tidak dirender. --}}
+    <div class="signatures">
+        @foreach($signatures as $signature)
+            <div>
+                {{-- Tanggal hanya di kolom terakhir; diulang di tiap kolom
+                     justru terbaca berantakan. Kota sengaja tidak dicantumkan
+                     karena profil perusahaan belum menyimpannya — menebaknya
+                     dari alamat lebih berisiko salah daripada berguna. --}}
+                <div class="label" style="visibility:{{ $loop->last ? 'visible' : 'hidden' }}">
+                    {{ fdate($document->date ?? now()) }}
+                </div>
+                <div style="font-size:8.5pt; margin-top:1mm">{{ $signature }}</div>
+                <div style="height:17mm"></div>
+                <div class="sign-rule">Nama &amp; Tanda Tangan</div>
+            </div>
+        @endforeach
+    </div>
 </div>
