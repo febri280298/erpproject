@@ -1,90 +1,97 @@
 @php
     /**
-     * Body shared by every printable document.
+     * Badan yang dipakai bersama oleh setiap dokumen cetak.
      *
-     * Column widths are percentages, not rem, so the table always fits the
-     * 186 mm of usable width on A4 portrait regardless of browser zoom.
+     * Lebar kolom dinyatakan dalam persen, bukan rem, supaya tabelnya selalu
+     * pas pada 186 mm lebar terpakai A4 potret berapa pun zoom peramban.
      *
-     * @var array  $meta        label => value pairs shown on the right
-     * @var object $partner     the counterparty (name/address/phone)
-     * @var string $partnerRole heading above the counterparty block
-     * @var bool   $showPrice   include money columns and the totals block
+     * @var array  $meta        pasangan label => nilai di kolom kanan
+     * @var object $partner     lawan transaksi (nama/alamat/telepon)
+     * @var string $partnerRole judul di atas blok lawan transaksi
+     * @var bool   $showPrice   sertakan kolom uang dan blok total
      * @var array  $signatures  ['Dibuat oleh', 'Disetujui oleh', …]
      */
     $showPrice = $showPrice ?? true;
     $signatures = $signatures ?? ['Dibuat oleh', 'Disetujui oleh', 'Diterima oleh'];
     $footerNote = $footerNote ?? null;
+
+    /*
+     * Kolom DPP Nilai Lain hanya dicetak bila dasar pengenaan tiap baris memang
+     * berbeda dari DPP-nya, dan diperiksa dari angka yang TERSIMPAN — bukan dari
+     * setelan saat ini — agar cetak ulang faktur lama tetap sama persis.
+     */
+    $showDppOther = $showPrice && $document->items->contains(
+        fn ($item) => isset($item->dpp_other)
+            && round((float) $item->dpp_other, 2) !== round((float) $item->subtotal, 2)
+    );
+
+    $adaDiskonBaris = $document->items->contains(fn ($i) => (float) $i->discount_percent > 0);
 @endphp
 
-<div class="row mb-4 avoid-break">
-    <div class="col-6">
-        <div class="text-uppercase text-secondary" style="font-size:8pt">{{ $partnerRole }}</div>
-        <div class="fw-bold">{{ $partner?->name ?? '—' }}</div>
-        <div style="font-size:8.5pt; line-height:1.35">
+<div class="party avoid-break">
+    <div>
+        <div class="label">{{ $partnerRole }}</div>
+        <div class="party-name">{{ $partner?->name ?? '—' }}</div>
+        <div class="party-detail">
             {!! nl2br(e($partner?->address ?? '')) !!}
-            @if($partner?->phone)<br>Telp: {{ $partner->phone }}@endif
-            @if($partner?->npwp)<br>NPWP: {{ $partner->npwp }}@endif
+            @if($partner?->phone)<br>Telp {{ $partner->phone }}@endif
+            @if($partner?->npwp)<br>NPWP {{ $partner->npwp }}@endif
         </div>
     </div>
-    <div class="col-6">
-        <table class="table table-sm table-borderless mb-0">
+    <div>
+        <table class="meta">
             @foreach($meta as $label => $value)
                 <tr>
-                    <td class="text-secondary p-0" style="width:42%">{{ $label }}</td>
-                    <td class="p-0">: {{ $value }}</td>
+                    <td class="k">{{ $label }}</td>
+                    <td class="v">{{ $value }}</td>
                 </tr>
             @endforeach
         </table>
     </div>
 </div>
 
-@php
-    // Sama seperti di halaman detail: kolom DPP Nilai Lain hanya dicetak bila
-    // dasar pengenaan tiap baris memang berbeda dari DPP-nya, dan diperiksa dari
-    // angka yang tersimpan agar cetakan ulang faktur lama tetap sama persis.
-    $showDppOther = $showPrice && $document->items->contains(
-        fn ($item) => isset($item->dpp_other)
-            && round((float) $item->dpp_other, 2) !== round((float) $item->subtotal, 2)
-    );
-@endphp
-
-<table class="table table-bordered table-sm">
+<table class="items">
     <thead>
     <tr>
-        <th style="width:4%">#</th>
+        <th style="width:5%">#</th>
         <th>Deskripsi</th>
-        <th class="text-num" style="width:{{ $showPrice ? '9%' : '14%' }}">Qty</th>
+        <th class="num" style="width:{{ $showPrice ? '8%' : '14%' }}">Qty</th>
         <th style="width:{{ $showPrice ? '8%' : '14%' }}">Satuan</th>
         @if($showPrice)
-            <th class="text-num" style="width:{{ $showDppOther ? '12%' : '15%' }}">Harga</th>
-            <th class="text-num" style="width:6%">Disc</th>
-            <th class="text-num" style="width:{{ $showDppOther ? '13%' : '17%' }}">Jumlah</th>
+            <th class="num" style="width:{{ $showDppOther ? '13%' : '16%' }}">Harga</th>
             @if($showDppOther)
-                <th class="text-num" style="width:14%">DPP Nilai Lain</th>
+                <th class="num" style="width:15%">DPP Nilai Lain</th>
             @endif
+            {{-- Kolom diskon hanya memakan ruang bila tidak ada baris yang didiskon. --}}
+            @if($adaDiskonBaris)<th class="num" style="width:7%">Disc</th>@endif
+            <th class="num" style="width:{{ $showDppOther ? '14%' : '18%' }}">Jumlah</th>
         @endif
     </tr>
     </thead>
     <tbody>
     @foreach($document->items as $index => $item)
         <tr>
-            <td>{{ $index + 1 }}</td>
+            <td class="muted">{{ $index + 1 }}</td>
             <td>
-                {{ $item->product?->name ?? $item->description }}
-                @if($item->description && $item->description !== $item->product?->name)
-                    <div class="text-secondary" style="font-size:8pt">{{ $item->description }}</div>
-                @endif
-                <div class="text-secondary" style="font-size:8pt">{{ $item->product?->sku }}</div>
+                <div class="item-name">{{ $item->product?->name ?? $item->description }}</div>
+                <div class="item-sub">
+                    @if($item->product?->sku){{ $item->product->sku }}@endif
+                    @if($item->description && $item->description !== $item->product?->name)
+                        @if($item->product?->sku) &middot; @endif{{ $item->description }}
+                    @endif
+                </div>
             </td>
-            <td class="text-num">{{ fnum($item->quantity) }}</td>
+            <td class="num">{{ fnum($item->quantity) }}</td>
             <td>{{ $item->product?->uom?->code ?? '—' }}</td>
             @if($showPrice)
-                <td class="text-num">{{ rupiah($item->unit_price, null, false) }}</td>
-                <td class="text-num">{{ fnum($item->discount_percent) }}%</td>
-                <td class="text-num">{{ rupiah($item->subtotal, null, false) }}</td>
+                <td class="num">{{ rupiah($item->unit_price, null, false) }}</td>
                 @if($showDppOther)
-                    <td class="text-num">{{ rupiah($item->dpp_other, null, false) }}</td>
+                    <td class="num">{{ rupiah($item->dpp_other, null, false) }}</td>
                 @endif
+                @if($adaDiskonBaris)
+                    <td class="num">{{ (float) $item->discount_percent > 0 ? fnum($item->discount_percent).'%' : '—' }}</td>
+                @endif
+                <td class="num">{{ rupiah($item->subtotal, null, false) }}</td>
             @endif
         </tr>
     @endforeach
@@ -92,69 +99,125 @@
 </table>
 
 @if($showPrice)
-    <div class="row avoid-break">
-        <div class="col-7">
+    @php
+        $adaPphOrBayar = (float) ($document->wht_amount ?? 0) > 0
+            || (float) ($document->paid_amount ?? 0) > 0;
+    @endphp
+
+    <div class="party avoid-break" style="margin-bottom:0">
+        <div>
             @if($document->notes)
-                <div class="mb-2"><strong>Catatan:</strong>
-                    <div style="font-size:8.5pt">{!! nl2br(e($document->notes)) !!}</div>
+                <div class="note-block">
+                    <strong>Catatan</strong><br>{!! nl2br(e($document->notes)) !!}
                 </div>
             @endif
             @if(! empty($document->terms))
-                <div class="mb-2"><strong>Syarat &amp; Ketentuan:</strong>
-                    <div style="font-size:8.5pt">{!! nl2br(e($document->terms)) !!}</div>
+                <div class="note-block">
+                    <strong>Syarat &amp; Ketentuan</strong><br>{!! nl2br(e($document->terms)) !!}
                 </div>
             @endif
-            <div style="font-size:8.5pt" class="mt-3">
-                <strong>Terbilang:</strong> <em>{{ terbilang((float) $document->total) }}</em>
+
+            {{-- Terbilang punya bobot hukum pada faktur, jadi diberi bingkainya sendiri. --}}
+            <div class="terbilang">
+                <span class="label">Terbilang</span><br>
+                <em>{{ terbilang((float) $document->total) }}</em>
             </div>
         </div>
-        <div class="col-5">
-            <table class="table table-sm mb-0">
-                <tr><td class="text-secondary">Subtotal (DPP)</td><td class="text-num">{{ rupiah($document->subtotal, null, false) }}</td></tr>
+
+        <div>
+            <table class="totals">
+                <tr>
+                    <td class="t-label">Subtotal (DPP)</td>
+                    <td class="t-value">{{ rupiah($document->subtotal, null, false) }}</td>
+                </tr>
+
                 @if((float) ($document->dpp_other_amount ?? 0) > 0
                     && abs((float) $document->dpp_other_amount - (float) $document->subtotal) >= 0.01)
                     <tr>
-                        <td class="text-secondary">DPP Nilai Lain ({{ app(\App\Services\LineItemCalculator::class)->ratioLabel() }})</td>
-                        <td class="text-num">{{ rupiah($document->dpp_other_amount, null, false) }}</td>
+                        <td class="t-label">
+                            DPP Nilai Lain
+                            ({{ app(\App\Services\LineItemCalculator::class)->ratioLabel() }})
+                        </td>
+                        <td class="t-value">{{ rupiah($document->dpp_other_amount, null, false) }}</td>
                     </tr>
                 @endif
+
                 @if((float) $document->discount_amount > 0)
-                    <tr><td class="text-secondary">Diskon</td><td class="text-num">({{ rupiah($document->discount_amount, null, false) }})</td></tr>
+                    <tr>
+                        <td class="t-label">Diskon</td>
+                        <td class="t-value">({{ rupiah($document->discount_amount, null, false) }})</td>
+                    </tr>
                 @endif
+
                 @if((float) $document->shipping_cost > 0)
-                    <tr><td class="text-secondary">Biaya Kirim</td><td class="text-num">{{ rupiah($document->shipping_cost, null, false) }}</td></tr>
+                    <tr>
+                        <td class="t-label">Biaya Kirim</td>
+                        <td class="t-value">{{ rupiah($document->shipping_cost, null, false) }}</td>
+                    </tr>
                 @endif
-                <tr><td class="text-secondary">PPN</td><td class="text-num">{{ rupiah($document->tax_amount, null, false) }}</td></tr>
-                <tr class="fw-bold" style="border-top:1pt solid #000">
-                    <td>TOTAL</td><td class="text-num">{{ rupiah($document->total) }}</td>
+
+                <tr>
+                    <td class="t-label">PPN</td>
+                    <td class="t-value">{{ rupiah($document->tax_amount, null, false) }}</td>
                 </tr>
-                {{-- PPh 23 disetor sendiri oleh customer, jadi yang ditransfer lebih kecil --}}
+
+                <tr class="grand">
+                    <td>TOTAL</td>
+                    <td class="t-value">{{ rupiah($document->total) }}</td>
+                </tr>
+
+                {{-- PPh 23 disetor sendiri oleh customer, jadi yang ditransfer lebih kecil. --}}
                 @if((float) ($document->wht_amount ?? 0) > 0)
                     <tr>
-                        <td class="text-secondary">PPh 23 ({{ fnum($document->wht_rate) }}%)</td>
-                        <td class="text-num">({{ rupiah($document->wht_amount, null, false) }})</td>
+                        <td class="t-label">PPh 23 ({{ fnum($document->wht_rate) }}%)</td>
+                        <td class="t-value">({{ rupiah($document->wht_amount, null, false) }})</td>
                     </tr>
-                    <tr class="fw-bold" style="border-top:.5pt solid #666">
-                        <td>DIBAYAR</td><td class="text-num">{{ rupiah($document->amountDue()) }}</td>
+                @endif
+
+                @if((float) ($document->paid_amount ?? 0) > 0)
+                    <tr>
+                        <td class="t-label">Sudah dibayar</td>
+                        <td class="t-value">({{ rupiah($document->paid_amount, null, false) }})</td>
+                    </tr>
+                @endif
+
+                {{-- Baris terakhir adalah angka yang benar-benar harus ditransfer.
+                     Hanya muncul bila memang berbeda dari TOTAL, supaya tidak ada
+                     dua angka besar yang bersaing tanpa alasan. --}}
+                @if($adaPphOrBayar)
+                    <tr class="due">
+                        <td>{{ (float) ($document->paid_amount ?? 0) > 0 ? 'SISA TAGIHAN' : 'DIBAYAR' }}</td>
+                        <td class="t-value">
+                            {{ rupiah(method_exists($document, 'outstandingAmount') && (float) ($document->paid_amount ?? 0) > 0
+                                ? $document->outstandingAmount()
+                                : (method_exists($document, 'amountDue') ? $document->amountDue() : $document->total)) }}
+                        </td>
                     </tr>
                 @endif
             </table>
         </div>
     </div>
 @elseif($document->notes)
-    <div class="mt-3 avoid-break"><strong>Catatan:</strong> <span style="font-size:8.5pt">{{ $document->notes }}</span></div>
+    <div class="note-block avoid-break"><strong>Catatan</strong><br>{{ $document->notes }}</div>
 @endif
 
 @if($footerNote)
-    <p class="text-secondary mt-4" style="font-size:8.5pt">{{ $footerNote }}</p>
+    <p class="note-block mt-3">{{ $footerNote }}</p>
 @endif
 
-<div class="row signatures text-center">
-    @foreach($signatures as $signature)
-        <div class="col">
-            <div class="text-secondary" style="font-size:8.5pt">{{ $signature }}</div>
-            <div style="height:18mm"></div>
-            <div style="border-top:.5pt solid #666; width:75%; margin:0 auto"></div>
+<div class="signatures">
+    @foreach($signatures as $i => $signature)
+        <div>
+            {{-- Tanggal hanya di kolom terakhir, seperti lazimnya surat resmi;
+                 diulang di tiap kolom justru terbaca berantakan. Kota sengaja
+                 tidak dicantumkan karena profil perusahaan belum menyimpannya —
+                 menebaknya dari alamat lebih berisiko salah daripada berguna. --}}
+            <div class="label" style="visibility:{{ $loop->last ? 'visible' : 'hidden' }}">
+                {{ fdate($document->date ?? now()) }}
+            </div>
+            <div style="font-size:8.5pt; margin-top:1mm">{{ $signature }}</div>
+            <div style="height:17mm"></div>
+            <div class="sign-rule">Nama &amp; Tanda Tangan</div>
         </div>
     @endforeach
 </div>

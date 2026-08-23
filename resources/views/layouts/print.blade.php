@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="id">
+{{-- Halaman cetak selalu terang: kertas tidak punya mode gelap. --}}
+<html lang="id" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,9 +10,15 @@
 
     <style>
         /*
-         * A4 portrait, 12 mm margins → 186 mm of usable width.
-         * On screen the sheet is drawn at exactly that size so what the user
-         * sees is what the printer produces.
+         * Dokumen cetak — A4 potret, margin 12 mm, lebar terpakai 186 mm.
+         *
+         * Sengaja satu warna: hitam untuk isi, satu abu-abu untuk label dan
+         * bidang. Dokumen pajak yang berwarna-warni terbaca tidak resmi, dan
+         * warna latar memboroskan tinta pada cetakan massal. Keterbacaannya
+         * datang dari hierarki ukuran huruf dan ruang kosong, bukan dari warna.
+         *
+         * Di layar, kertasnya digambar persis seukuran hasil cetak supaya yang
+         * dilihat sama dengan yang keluar dari printer.
          */
         @page {
             size: A4 portrait;
@@ -20,18 +27,23 @@
 
         :root {
             --sheet-width: 186mm;
+            --tinta: #111827;          /* hitam lembut; hitam murni terlihat kasar di kertas */
+            --redup: #6b7280;          /* label dan keterangan */
+            --garis: #d1d5db;          /* garis rambut antar baris */
+            --bidang: #f3f4f6;         /* bidang kepala tabel & panel total */
         }
 
         body {
-            background: #f2f3f5;
-            color: #000;
-            font-size: 10pt;
+            background: #e9eaec;
+            color: var(--tinta);
+            font-size: 9.5pt;
             line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
         }
 
         .sheet {
             width: var(--sheet-width);
-            min-height: 273mm;              /* 297 mm − margin atas & bawah */
+            min-height: 273mm;                  /* 297 mm − margin atas & bawah */
             margin: 1.5rem auto;
             padding: 10mm;
             background: #fff;
@@ -46,32 +58,268 @@
             align-items: center;
         }
 
-        .doc-title {
-            font-size: 15pt;
-            font-weight: 700;
-            letter-spacing: .02em;
-        }
+        /* ----------------------------------------------------------- Kop surat */
 
         .letterhead {
-            border-bottom: 2px solid #000;
-            padding-bottom: 6mm;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8mm;
+            padding-bottom: 5mm;
+        }
+
+        /*
+         * Garis ganda tebal-tipis: perangkat kertas surat klasik yang langsung
+         * membedakan dokumen resmi dari cetakan halaman web.
+         */
+        .letterhead-rule {
+            border-top: 1.6pt solid var(--tinta);
+            border-bottom: .5pt solid var(--tinta);
+            height: 1.2mm;
             margin-bottom: 6mm;
         }
 
-        .sheet table {
+        .company-name {
+            font-size: 12.5pt;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -.01em;
+        }
+
+        .company-detail {
+            font-size: 8pt;
+            line-height: 1.4;
+            color: var(--redup);
+            margin-top: 1mm;
+        }
+
+        /* Jenis dokumen adalah hal pertama yang dicari orang, jadi paling besar. */
+        .doc-type {
+            font-size: 19pt;
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .doc-no {
             font-size: 9.5pt;
+            color: var(--redup);
+            margin-top: 1mm;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ------------------------------------------------- Pihak & keterangan */
+
+        .party {
+            display: flex;
+            gap: 8mm;
+            margin-bottom: 6mm;
+        }
+
+        .party > * {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .label {
+            font-size: 7pt;
+            font-weight: 600;
+            letter-spacing: .09em;
+            text-transform: uppercase;
+            color: var(--redup);
+        }
+
+        .party-name {
+            font-size: 11pt;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-top: 1mm;
+        }
+
+        .party-detail {
+            font-size: 8.5pt;
+            line-height: 1.4;
+            color: var(--redup);
+            margin-top: 1mm;
+        }
+
+        /* Keterangan dokumen: label redup kiri, nilai tegas kanan, dipisah
+           garis rambut agar pasangannya tidak tertukar saat dibaca cepat. */
+        .meta {
             width: 100%;
+            border-collapse: collapse;
+            margin-top: 1mm;
         }
 
-        .sheet .table > :not(caption) > * > * {
-            padding: 1.6mm 2mm;
+        .meta td {
+            padding: 1.1mm 0;
+            border-bottom: .5pt solid var(--garis);
+            vertical-align: baseline;
         }
 
-        .sheet .table-bordered > :not(caption) > * > * {
-            border: .5pt solid #adb5bd;
+        .meta tr:last-child td {
+            border-bottom: 0;
         }
 
-        /* Keep rows, totals and the signature strip from splitting across pages. */
+        .meta .k {
+            color: var(--redup);
+            font-size: 8.5pt;
+            white-space: nowrap;
+            padding-right: 3mm;
+        }
+
+        .meta .v {
+            text-align: right;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* --------------------------------------------------------- Tabel item */
+
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5mm;
+        }
+
+        .items thead th {
+            background: var(--bidang);
+            border-top: .8pt solid var(--tinta);
+            border-bottom: .8pt solid var(--tinta);
+            padding: 1.8mm 2mm;
+            font-size: 7.5pt;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--tinta);
+            text-align: left;
+        }
+
+        .items tbody td {
+            padding: 2mm;
+            border-bottom: .5pt solid var(--garis);
+            vertical-align: top;
+        }
+
+        /* Baris terakhir ditutup garis tegas: batas bawah tabel harus jelas
+           sebelum mata pindah ke blok total. */
+        .items tbody tr:last-child td {
+            border-bottom: .8pt solid var(--tinta);
+        }
+
+        .items .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .items .item-name {
+            font-weight: 600;
+        }
+
+        /* Abu-abu sendiri, bukan .text-secondary bawaan Tabler yang sedikit
+           kebiruan — dalam satu dokumen semua teks redup harus sama persis. */
+        .sheet .muted {
+            color: var(--redup);
+        }
+
+        .items .item-sub {
+            font-size: 7.5pt;
+            color: var(--redup);
+            line-height: 1.35;
+        }
+
+        /* ------------------------------------------------------------- Total */
+
+        .totals {
+            width: 100%;
+            border-collapse: collapse;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .totals td {
+            padding: 1.4mm 2mm;
+        }
+
+        .totals .t-label {
+            color: var(--redup);
+        }
+
+        .totals .t-value {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .totals .grand td {
+            background: var(--bidang);
+            border-top: .8pt solid var(--tinta);
+            border-bottom: .8pt solid var(--tinta);
+            font-weight: 700;
+            font-size: 11pt;
+            padding-top: 2mm;
+            padding-bottom: 2mm;
+        }
+
+        /* Jumlah yang benar-benar ditransfer berbeda dari TOTAL bila ada PPh 23
+           atau pembayaran sebagian — dibedakan agar tidak salah bayar. */
+        .totals .due td {
+            font-weight: 700;
+            border-bottom: .8pt double var(--tinta);
+        }
+
+        .terbilang {
+            border: .5pt solid var(--garis);
+            border-left: 1.6pt solid var(--tinta);
+            padding: 2mm 3mm;
+            font-size: 8.5pt;
+            margin-top: 3mm;
+        }
+
+        .note-block {
+            font-size: 8.5pt;
+            color: var(--redup);
+            margin-bottom: 3mm;
+        }
+
+        .note-block strong {
+            color: var(--tinta);
+        }
+
+        /* -------------------------------------------------------- Tanda tangan */
+
+        .signatures {
+            display: flex;
+            gap: 6mm;
+            margin-top: 10mm;
+            text-align: center;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .signatures > * {
+            flex: 1 1 0;
+        }
+
+        .sign-rule {
+            border-top: .5pt solid var(--tinta);
+            margin: 0 auto;
+            width: 80%;
+            padding-top: 1mm;
+            font-size: 7.5pt;
+            color: var(--redup);
+        }
+
+        .doc-footnote {
+            margin-top: 8mm;
+            padding-top: 2.5mm;
+            border-top: .5pt solid var(--garis);
+            font-size: 7.5pt;
+            color: var(--redup);
+        }
+
+        /* Jaga agar baris, blok total dan tanda tangan tidak terpotong halaman. */
         thead {
             display: table-header-group;
         }
@@ -82,21 +330,8 @@
             break-inside: avoid;
         }
 
-        .signatures {
-            page-break-inside: avoid;
-            break-inside: avoid;
-            margin-top: 12mm;
-        }
-
-        .doc-footnote {
-            margin-top: 8mm;
-            padding-top: 3mm;
-            border-top: .5pt solid #dee2e6;
-            font-size: 8pt;
-            color: #6c757d;
-        }
-
-        /* Below A4 width the preview would scroll sideways; printing stays exact. */
+        /* Di bawah lebar A4 pratinjaunya akan menggulir mendatar; hasil cetak
+           tetap persis. */
         @media screen and (max-width: 800px) {
             .sheet,
             .print-toolbar {
@@ -120,7 +355,8 @@
                 box-shadow: none;
             }
 
-            /* Keep table shading and badges legible on paper. */
+            /* Bidang abu-abu kepala tabel dan baris TOTAL harus tetap tercetak;
+               tanpa ini sebagian printer menghilangkannya. */
             * {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -139,36 +375,34 @@
 </div>
 
 <div class="sheet">
-    {{-- Kop surat --}}
     <div class="letterhead">
-        <div class="row align-items-start">
-            <div class="col-7">
-                <div class="d-flex align-items-start gap-2">
-                    @if(! empty($company['logo']))
-                        <img src="{{ asset('storage/'.$company['logo']) }}" alt="" style="max-height:14mm">
-                    @endif
-                    <div>
-                        <div class="doc-title">{{ $company['name'] }}</div>
-                        <div style="font-size:8.5pt; line-height:1.35">
-                            {!! nl2br(e($company['address'])) !!}
-                            @if($company['phone'])<br>Telp: {{ $company['phone'] }}@endif
-                            @if($company['email']) &middot; {{ $company['email'] }} @endif
-                            @if($company['npwp'])<br>NPWP: {{ $company['npwp'] }}@endif
-                        </div>
-                    </div>
+        <div class="d-flex align-items-start gap-3">
+            @if(! empty($company['logo']))
+                <img src="{{ asset('storage/'.$company['logo']) }}" alt="" style="max-height:15mm">
+            @endif
+            <div>
+                <div class="company-name">{{ $company['name'] }}</div>
+                <div class="company-detail">
+                    {!! nl2br(e($company['address'])) !!}
+                    @if($company['phone'])<br>Telp {{ $company['phone'] }}@endif
+                    @if($company['email']) &middot; {{ $company['email'] }} @endif
+                    @if($company['npwp'])<br>NPWP {{ $company['npwp'] }}@endif
                 </div>
             </div>
-            <div class="col-5 text-end">
-                <div class="doc-title text-uppercase">@yield('doc-title')</div>
-                <div style="font-size:10pt">@yield('doc-subtitle')</div>
-            </div>
+        </div>
+        <div class="text-end">
+            <div class="doc-type">@yield('doc-title')</div>
+            <div class="doc-no">@yield('doc-subtitle')</div>
         </div>
     </div>
+
+    <div class="letterhead-rule"></div>
 
     @yield('content')
 
     <div class="doc-footnote">
-        Dicetak dari {{ $company['name'] }} · @yield('doc-subtitle') · {{ now()->translatedFormat('d F Y H:i') }} WIB
+        Dicetak dari {{ $company['name'] }} &middot; @yield('doc-subtitle')
+        &middot; {{ now()->translatedFormat('d F Y H:i') }} WIB
     </div>
 </div>
 

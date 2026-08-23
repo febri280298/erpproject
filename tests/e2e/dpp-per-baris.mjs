@@ -78,25 +78,42 @@ const DPP = 800000;
 const NILAI_LAIN = Math.round((DPP * 11 / 12) * 100) / 100;
 const PPN = Math.round(NILAI_LAIN * 0.12 * 100) / 100;
 
+// Sel dibaca lewat judul kolomnya, bukan urutan posisi: urutan kolom pernah
+// berubah dan uji berbasis posisi diam-diam membandingkan angka yang salah.
 const dariForm = await page.evaluate(() => {
+    const judul = [...document.querySelectorAll('.table-items thead th')]
+        .map((th) => th.textContent.trim());
+    // Bukan tr:first-child — anak pertama tbody adalah <template> milik Alpine,
+    // bukan barisnya, sehingga selector itu tidak pernah cocok.
     const baris = document.querySelector('.table-items tbody tr');
-    const sel = [...baris.querySelectorAll('td.text-num')].map((td) => td.textContent.trim());
+    const sel = baris ? [...baris.children].map((td) => td.textContent.trim()) : [];
 
-    return { sel };
+    const ambil = (nama) => {
+        const i = judul.findIndex((j) => j.toLowerCase() === nama.toLowerCase());
+
+        return i >= 0 ? sel[i] : null;
+    };
+
+    return { judul, dpp: ambil('DPP'), nilaiLain: ambil('DPP Nilai Lain') };
 });
 
-const dppTampil = angka(dariForm.sel[0]);
-const nilaiLainTampil = angka(dariForm.sel[1]);
+if (! dariForm.dpp || ! dariForm.nilaiLain) {
+    console.log('  Kolom DPP / DPP Nilai Lain tidak ditemukan:', dariForm.judul.join(' | '));
+    process.exit(1);
+}
+
+const dppTampil = angka(dariForm.dpp);
+const nilaiLainTampil = angka(dariForm.nilaiLain);
 
 // Desimal yang dipakai halaman disimpulkan dari angka yang tampil, agar uji ini
 // tetap sahih baik saat desimal uang dinyalakan maupun dimatikan.
-const desimal = (dariForm.sel[1].split(',')[1] ?? '').length;
+const desimal = (dariForm.nilaiLain.split(',')[1] ?? '').length;
 const toleransi = desimal >= 2 ? 0.01 : 1;
 
 lapor('DPP baris benar', Math.abs(dppTampil - DPP) <= toleransi,
-    `${dariForm.sel[0]} (harap ${rupiah(DPP, desimal)})`);
+    `${dariForm.dpp} (harap ${rupiah(DPP, desimal)})`);
 lapor('DPP Nilai Lain baris benar', Math.abs(nilaiLainTampil - NILAI_LAIN) <= toleransi,
-    `${dariForm.sel[1]} (harap ${rupiah(NILAI_LAIN, desimal)} = 11/12 x ${rupiah(DPP, desimal)})`);
+    `${dariForm.nilaiLain} (harap ${rupiah(NILAI_LAIN, desimal)} = 11/12 x ${rupiah(DPP, desimal)})`);
 
 /* ------------------------------------------------------ 3. Tersimpan benar */
 
@@ -127,9 +144,9 @@ if (tersimpan) {
     await page.waitForTimeout(600);
 
     const cetak = await page.evaluate(() => {
-        // Halaman cetak memuat beberapa tabel (kop, meta, rekap); yang berisi
-        // rincian item adalah satu-satunya yang berbingkai.
-        const t = document.querySelector('table.table-bordered');
+        // Halaman cetak memuat beberapa tabel (keterangan dokumen, rekap total);
+        // rincian itemnya adalah tabel berkelas .items.
+        const t = document.querySelector('table.items');
 
         return {
             judul: [...t.querySelectorAll('thead th')].map((x) => x.textContent.trim()),

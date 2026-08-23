@@ -29,11 +29,10 @@
             <th>Satuan</th>
             @if($showPrice)
                 <th class="text-num">Harga</th>
-                <th class="text-num">Disc</th>
                 @if($showDppOther)
-                    <th class="text-num">DPP</th>
                     <th class="text-num">DPP Nilai Lain</th>
                 @endif
+                <th class="text-num">Disc</th>
                 <th class="text-num">Pajak</th>
                 <th class="text-num">Jumlah</th>
             @endif
@@ -56,11 +55,10 @@
                 <td class="text-secondary">{{ $item->product?->uom?->code ?? '—' }}</td>
                 @if($showPrice)
                     <td class="text-num">{{ rupiah($item->unit_price) }}</td>
-                    <td class="text-num">{{ fnum($item->discount_percent) }}%</td>
                     @if($showDppOther)
-                        <td class="text-num">{{ rupiah($item->subtotal) }}</td>
                         <td class="text-num">{{ rupiah($item->dpp_other) }}</td>
                     @endif
+                    <td class="text-num">{{ fnum($item->discount_percent) }}%</td>
                     <td class="text-num">{{ rupiah($item->tax_amount) }}</td>
                     <td class="text-num fw-bold">{{ rupiah($item->total) }}</td>
                 @endif

@@ -75,11 +75,6 @@
                     <th class="col-qty text-end">Qty</th>
                     <th style="width:5rem">Satuan</th>
                     @if($showPrice)<th class="col-price text-end">Harga</th>@endif
-                    @if($showDiscount)<th class="col-disc text-end">Disc %</th>@endif
-                    @if($showTax)<th class="col-disc text-end">Pajak %</th>@endif
-                    {{-- Menampilkan DPP (belum kena pajak) agar kolomnya berjumlah sama
-                         dengan Subtotal di rekap; pajak ditambahkan sekali di bawah. --}}
-                    @if($showPrice)<th class="col-total text-end">DPP</th>@endif
                     {{-- Dasar pengenaan tiap baris hanya berbeda dari DPP ketika DPP
                          Nilai Lain aktif, jadi kolomnya baru muncul saat itu. --}}
                     @if($showPrice)
@@ -87,6 +82,11 @@
                             DPP Nilai Lain
                         </th>
                     @endif
+                    @if($showDiscount)<th class="col-disc text-end">Disc %</th>@endif
+                    @if($showTax)<th class="col-disc text-end">Pajak %</th>@endif
+                    {{-- Menampilkan DPP (belum kena pajak) agar kolomnya berjumlah sama
+                         dengan Subtotal di rekap; pajak ditambahkan sekali di bawah. --}}
+                    @if($showPrice)<th class="col-total text-end">DPP</th>@endif
                     <th class="col-action"></th>
                 </tr>
                 </thead>
@@ -117,6 +117,8 @@
                                 <input type="number" step="0.01" min="0" class="form-control text-end"
                                        :name="`items[${index}][unit_price]`" x-model.number="row.unit_price" required>
                             </td>
+                            <td class="text-num" x-show="usesDppOther" x-cloak
+                                x-text="money(lineTaxBase(row))"></td>
                         @else
                             <input type="hidden" :name="`items[${index}][unit_price]`" :value="row.unit_price">
                         @endif
@@ -134,8 +136,6 @@
                         @endif
                         @if($showPrice)
                             <td class="text-num" x-text="money(lineSubtotal(row))"></td>
-                            <td class="text-num" x-show="usesDppOther" x-cloak
-                                x-text="money(lineTaxBase(row))"></td>
                         @endif
                         <td>
                             <button type="button" class="btn btn-icon btn-ghost-danger" @click="removeRow(index)"
