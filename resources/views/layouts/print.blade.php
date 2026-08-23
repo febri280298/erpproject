@@ -182,14 +182,19 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 5mm;
+            /* Lebih kecil dari teks lain di halaman: satu dokumen sering memuat
+               puluhan baris, dan tabel yang padat memuat lebih banyak baris per
+               lembar tanpa mengurangi keterbacaan angkanya. */
+            font-size: 8pt;
+            line-height: 1.3;
         }
 
         .items thead th {
             background: var(--bidang);
             border-top: .8pt solid var(--tinta);
             border-bottom: .8pt solid var(--tinta);
-            padding: 1.8mm 2mm;
-            font-size: 7.5pt;
+            padding: 1.2mm 1.6mm;
+            font-size: 6.8pt;
             font-weight: 700;
             letter-spacing: .06em;
             text-transform: uppercase;
@@ -198,7 +203,7 @@
         }
 
         .items tbody td {
-            padding: 2mm;
+            padding: 1.3mm 1.6mm;
             border-bottom: .5pt solid var(--garis);
             vertical-align: top;
         }
@@ -226,9 +231,9 @@
         }
 
         .items .item-sub {
-            font-size: 7.5pt;
+            font-size: 6.8pt;
             color: var(--redup);
-            line-height: 1.35;
+            line-height: 1.3;
         }
 
         /* ------------------------------------------------------------- Total */
@@ -319,10 +324,24 @@
             color: var(--redup);
         }
 
-        /* Jaga agar baris, blok total dan tanda tangan tidak terpotong halaman. */
+        /*
+         * Kepala tabel diulang pada setiap halaman.
+         *
+         * table-header-group membuat peramban mencetak ulang <thead> di puncak
+         * tiap halaman ketika tabelnya melewati batas kertas. Tanpa ini, halaman
+         * kedua dan seterusnya hanya berisi deretan angka tanpa judul kolom —
+         * pembaca harus bolak-balik ke halaman pertama untuk tahu kolom mana
+         * yang mana.
+         */
         thead {
             display: table-header-group;
         }
+
+        tfoot {
+            display: table-footer-group;
+        }
+
+        /* Baris tidak boleh terbelah dua halaman. */
 
         tr,
         .avoid-break {
