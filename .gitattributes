@@ -9,3 +9,12 @@
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
+
+# Berkas batch harus berakhiran CRLF. Aturan eol=lf di atas akan
+# merusaknya: cmd.exe gagal menemukan label (:jeda, :tunggu_port) pada
+# berkas berakhiran LF, dan skripnya berhenti di tengah jalan.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Ikon adalah berkas biner; jangan disentuh normalisasi akhir baris.
+*.ico binary
