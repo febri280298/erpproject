@@ -27,8 +27,56 @@
         })
         ->values();
 
-    $isActive = fn (string $route) => request()->routeIs($route)
-        || request()->routeIs(\Illuminate\Support\Str::beforeLast($route, '.').'.*');
+    /*
+     * Menentukan menu mana yang tersorot dan grup mana yang terbuka.
+     *
+     * Aturannya dua lapis:
+     *
+     * 1. Cocok persis selalu menang. Bila rute yang sedang dibuka memang salah
+     *    satu tujuan menu, hanya menu itu yang aktif.
+     *
+     * 2. Bila tidak ada yang cocok persis — misalnya sedang membuka
+     *    products.create atau purchase-orders.show — barulah dicari menu daftar
+     *    (.index) dari sumber daya yang sama, supaya halaman anak tetap menyorot
+     *    induknya.
+     *
+     * Versi sebelumnya hanya memakai pencocokan awalan: rute dipotong sebelum
+     * titik terakhir lalu dicocokkan dengan pola berjoker. Untuk products.index
+     * itu benar, tetapi untuk dashboard.master awalannya menjadi "dashboard" —
+     * dan SELURUH dashboard modul berawalan sama, sehingga membuka satu
+     * dashboard menyalakan semua grupnya sekaligus. Hal yang sama terjadi pada
+     * Produk/Upload Produk dan Stok/Kartu Stok yang berbagi awalan.
+     */
+    $rutuSekarang = request()->route()?->getName();
+
+    $semuaRuteMenu = collect(config('erp.menu'))
+        ->flatMap(fn (array $item) => $item['children'] ?? [$item])
+        ->pluck('route')
+        ->filter()
+        ->all();
+
+    $adaYangCocokPersis = in_array($rutuSekarang, $semuaRuteMenu, true);
+
+    $isActive = function (string $route) use ($rutuSekarang, $adaYangCocokPersis) {
+        if ($rutuSekarang === $route) {
+            return true;
+        }
+
+        if ($adaYangCocokPersis) {
+            return false;
+        }
+
+        // Hanya menu daftar yang mewakili halaman anaknya; menu seperti
+        // "Upload Produk" mewakili dirinya sendiri saja.
+        if (! \Illuminate\Support\Str::endsWith($route, '.index')) {
+            return false;
+        }
+
+        return \Illuminate\Support\Str::startsWith(
+            (string) $rutuSekarang,
+            \Illuminate\Support\Str::beforeLast($route, '.').'.'
+        );
+    };
 @endphp
 
 <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
