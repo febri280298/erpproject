@@ -79,6 +79,9 @@
                             <th class="text-num">Dipesan</th>
                             <th class="text-num">Sudah Dikirim</th>
                             <th class="text-num">Sisa</th>
+                            {{-- Stok gudang asal: yang menentukan surat jalan ini
+                                 bisa diposting atau tidak. --}}
+                            <th class="text-num">Stok {{ $order->warehouse?->name }}</th>
                             <th style="width:10rem" class="text-end">Kirim Sekarang</th>
                         </tr>
                         </thead>
@@ -94,6 +97,16 @@
                                 <td class="text-num">{{ fnum($item->quantity) }} {{ $item->product?->uom?->code }}</td>
                                 <td class="text-num">{{ fnum($item->delivered_qty) }}</td>
                                 <td class="text-num fw-bold text-orange">{{ fnum($item->outstandingQty()) }}</td>
+                                @php
+                                    $sisaStok = $stok[$order->warehouse_id][$item->product_id] ?? 0;
+                                    $kurang = $sisaStok < $item->outstandingQty();
+                                @endphp
+                                <td class="text-num {{ $kurang ? 'text-danger fw-bold' : 'text-secondary' }}">
+                                    {{ fnum($sisaStok) }}
+                                    @if($kurang)
+                                        <div class="small">kurang {{ fnum($item->outstandingQty() - $sisaStok) }}</div>
+                                    @endif
+                                </td>
                                 <td>
                                     <input type="number" step="0.0001" min="0" max="{{ $item->outstandingQty() }}"
                                            name="items[{{ $index }}][quantity]" value="{{ $item->outstandingQty() }}"
@@ -123,7 +136,7 @@
     {{-- Jalur B: surat jalan lepas, produk dipilih bebas --}}
     @else
         <form method="POST" action="{{ route('delivery-orders.store') }}"
-              x-data="deliveryItems({ products: {{ Js::from($products) }} })"
+              x-data="deliveryItems({ products: {{ Js::from($products) }}, stok: {{ Js::from($stok) }} })"
               @submit="validate($event)">
             @csrf
 
@@ -137,8 +150,11 @@
                 <div class="row g-3">
                     <x-form.select name="partner_id" label="Customer" :options="$customers" required col="col-md-4"
                                    placeholder="— Pilih customer —" />
+                    {{-- x-model mengikat gudang ke Alpine supaya kolom Stok ikut
+                         berubah begitu gudangnya diganti, tanpa memuat ulang halaman. --}}
                     <x-form.select name="warehouse_id" label="Gudang Asal" :options="$warehouses"
-                                   :value="$defaultWarehouse" required col="col-md-4" :placeholder="false" />
+                                   :value="$defaultWarehouse" required col="col-md-4" :placeholder="false"
+                                   x-model="warehouseId" />
                     <x-form.input name="date" label="Tanggal Kirim" type="date" :value="now()->toDateString()" required col="col-md-4" />
                     <x-form.input name="driver_name" label="Nama Pengemudi" col="col-md-4" />
                     <x-form.input name="vehicle_no" label="No. Kendaraan" col="col-md-4" />
@@ -160,6 +176,7 @@
                             <th style="width:2.5rem">#</th>
                             <th style="min-width:18rem">Produk</th>
                             <th style="width:6rem">Satuan</th>
+                            <th class="text-num" style="width:8rem">Stok</th>
                             <th class="col-qty text-end">Jumlah Kirim</th>
                             <th style="min-width:12rem">Keterangan</th>
                             <th class="col-action"></th>
@@ -179,6 +196,11 @@
                                     </select>
                                 </td>
                                 <td class="text-secondary" x-text="row.uom || '—'"></td>
+                                {{-- Merah bila jumlah kirim melebihi stok: posting
+                                     akan ditolak, dan lebih baik ketahuan sekarang. --}}
+                                <td class="text-num"
+                                    :class="kurangStok(row) ? 'text-danger fw-bold' : 'text-secondary'"
+                                    x-text="stokBaris(row)"></td>
                                 <td>
                                     <input type="number" step="0.0001" min="0.0001" class="form-control text-end"
                                            :name="`items[${index}][quantity]`" x-model.number="row.quantity" required>

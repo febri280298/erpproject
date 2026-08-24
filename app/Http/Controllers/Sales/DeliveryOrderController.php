@@ -58,6 +58,11 @@ class DeliveryOrderController extends Controller
         return view('sales.deliveries.form', [
             'order' => $order,
             'manual' => $manual,
+            // Sisa stok per gudang, supaya orang gudang tahu barangnya cukup
+            // atau tidak SEBELUM surat jalannya dibuat. Diambil sekali sebagai
+            // peta, bukan per baris: tabel bisa berisi puluhan item dan
+            // memanggilnya satu-satu berarti puluhan kueri untuk satu halaman.
+            'stok' => $this->petaStok(),
             'openOrders' => SalesOrder::query()
                 ->whereIn('status', ['confirmed', 'partial'])
                 ->with('customer:id,name')
@@ -69,6 +74,26 @@ class DeliveryOrderController extends Controller
             'products' => Product::optionsPayload(),
             'nextNumber' => $this->numbers->peek('delivery_order'),
         ]);
+    }
+
+    /**
+     * Sisa stok seluruh produk per gudang: [gudang_id][produk_id] => jumlah.
+     *
+     * Dipakai kedua jalur surat jalan. Jalur dari pesanan hanya memerlukan satu
+     * gudang, tetapi jalur manual membiarkan gudangnya diganti setelah halaman
+     * terbuka, jadi seluruhnya dikirim sekaligus dan dibaca di sisi peramban.
+     *
+     * @return array<int,array<int,float>>
+     */
+    private function petaStok(): array
+    {
+        $peta = [];
+
+        foreach (DB::table('stocks')->select('warehouse_id', 'product_id', 'quantity')->get() as $baris) {
+            $peta[(int) $baris->warehouse_id][(int) $baris->product_id] = (float) $baris->quantity;
+        }
+
+        return $peta;
     }
 
     public function store(Request $request): RedirectResponse

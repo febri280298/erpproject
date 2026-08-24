@@ -217,10 +217,11 @@ return [
             'judul' => 'Kirim barang',
             'langkah' => [
                 '<span class="path">Penjualan → Surat Jalan (DO) → Buat</span> — pilih <strong>Dari Pesanan Penjualan</strong>, lalu pilih SO tadi.',
+                'Perhatikan kolom <strong>Stok</strong>: isinya sisa barang di gudang asal. Angka yang <span class="text-danger">merah</span> berarti stoknya kurang dari yang akan dikirim, beserta selisihnya. Posting akan ditolak bila stok tidak cukup, jadi kekurangannya lebih baik ketahuan di sini daripada di langkah terakhir.',
                 'Isi jumlah kirim, nama pengemudi, dan nomor kendaraan. Simpan, lalu <strong>Posting</strong>.',
                 'Cetak surat jalannya untuk dibawa pengantar.',
             ],
-            'catat' => 'Tersedia juga jalur <strong>Tanpa Pesanan Penjualan</strong> untuk kiriman contoh barang atau penjualan langsung — customer, gudang, dan produknya dipilih sendiri.',
+            'catat' => 'Tersedia juga jalur <strong>Tanpa Pesanan Penjualan</strong> untuk kiriman contoh barang atau penjualan langsung — customer, gudang, dan produknya dipilih sendiri. Kolom Stok di jalur ini ikut berubah begitu gudangnya diganti.',
             'periksa' => [
                 'Stok berkurang sebanyak yang dikirim.',
                 'Terbentuk jurnal <strong>HPP</strong> memakai harga pokok rata-rata bergerak, bukan harga jual.',
