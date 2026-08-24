@@ -32,13 +32,27 @@
                 <table class="table table-vcenter card-table">
                     <thead>
                     <tr>
+                        {{-- Kolom sempit untuk tombol buka rincian --}}
+                        <th class="w-1"></th>
                         <th>No. GRN</th><th>Tanggal</th><th>No. PO</th><th>Pemasok</th>
                         <th>Gudang</th><th>SJ Pemasok</th><th>Status</th><th class="w-1"></th>
                     </tr>
                     </thead>
-                    <tbody>
+                    {{-- Satu <tbody> per dokumen: baris utama dan baris rinciannya
+                         harus berbagi satu keadaan buka/tutup, dan dua <tr> bersaudara
+                         tidak bisa berbagi satu x-data tanpa pembungkus. HTML memang
+                         membolehkan lebih dari satu <tbody> dalam satu tabel. --}}
                     @foreach($documents as $document)
+                    <tbody x-data="{ buka: false }">
                         <tr>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-ghost-secondary btn-icon"
+                                        @click="buka = ! buka"
+                                        :aria-expanded="buka ? 'true' : 'false'"
+                                        aria-label="Lihat barang {{ $document->grn_no }}">
+                                    <i class="ti" :class="buka ? 'ti-chevron-down' : 'ti-chevron-right'"></i>
+                                </button>
+                            </td>
                             <td><a href="{{ route('goods-receipts.show', $document) }}" class="fw-bold">{{ $document->grn_no }}</a></td>
                             <td>{{ fdate($document->date) }}</td>
                             <td>
@@ -69,8 +83,40 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforeach
+
+                        <tr x-show="buka" x-cloak>
+                            <td colspan="9" class="bg-light-lt">
+                                @if($document->items->isEmpty())
+                                    <div class="text-secondary py-2">Dokumen ini tidak memuat barang.</div>
+                                @else
+                                    <table class="table table-sm table-vcenter mb-0">
+                                        <thead>
+                                        <tr>
+                                            <th style="width:2.5rem">#</th>
+                                            <th>Produk</th>
+                                            <th class="text-num" style="width:10rem">Diterima</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach($document->items as $i => $item)
+                                            <tr>
+                                                <td class="text-secondary">{{ $i + 1 }}</td>
+                                                <td>
+                                                    {{ $item->product?->name ?? '—' }}
+                                                    <span class="text-secondary small font-monospace ms-1">{{ $item->product?->sku }}</span>
+                                                </td>
+                                                <td class="text-num fw-bold">
+                                                    {{ fnum($item->quantity) }} {{ $item->product?->uom?->code }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                @endif
+                            </td>
+                        </tr>
                     </tbody>
+                    @endforeach
                 </table>
             </div>
 

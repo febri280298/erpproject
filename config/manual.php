@@ -153,6 +153,7 @@ return [
                 '<span class="path">Pembelian → Penerimaan Barang (GRN) → Buat</span>, pilih PO yang sudah disetujui.',
                 'Isi jumlah yang benar-benar datang. Boleh sebagian — sisanya tetap tercatat sebagai kekurangan pada PO.',
                 'Simpan, lalu tekan <strong>Posting</strong>. Sebelum diposting, stok belum berubah.',
+                'Pada <span class="path">daftar Penerimaan Barang</span>, tombol panah di sebelah nomor GRN membuka rincian barang yang diterima beserta jumlahnya — berguna saat mencocokkan beberapa penerimaan sekaligus tanpa membuka dokumennya satu per satu.',
             ],
             'catat' => 'Harga beli yang benar-benar dibayar ikut memperbarui daftar harga supplier produk itu dan tercatat di riwayat harga.',
             'periksa' => [

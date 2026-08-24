@@ -31,7 +31,14 @@ class GoodsReceiptController extends Controller
     {
         return view('purchasing.receipts.index', [
             'documents' => GoodsReceipt::query()
-                ->with(['supplier:id,name', 'warehouse:id,name', 'purchaseOrder:id,po_no'])
+                // Barisnya ikut dimuat agar bisa dibuka langsung dari daftar.
+                // Eager load, bukan diambil per baris: satu halaman berisi 20
+                // dokumen dan mengambilnya satu-satu berarti puluhan kueri.
+                ->with([
+                    'supplier:id,name', 'warehouse:id,name', 'purchaseOrder:id,po_no',
+                    'items:id,goods_receipt_id,product_id,quantity',
+                    'items.product:id,sku,name,uom_id', 'items.product.uom:id,code',
+                ])
                 ->filter($request->query())
                 ->latest('date')->latest('id')
                 ->paginate(20)
