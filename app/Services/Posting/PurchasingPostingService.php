@@ -157,15 +157,122 @@ class PurchasingPostingService
             $invoice->forceFill(['status' => 'posted', 'posted_at' => now()])->save();
             $invoice->recordActivity('posted', "Faktur {$invoice->invoice_no} diposting");
 
-            if ($invoice->purchaseOrder) {
-                foreach ($invoice->items as $item) {
-                    $invoice->purchaseOrder->items()
-                        ->where('product_id', $item->product_id)
-                        ->limit(1)
-                        ->increment('invoiced_qty', (float) $item->quantity);
+            $this->allocateInvoicedQty($invoice);
+        });
+    }
+
+    /**
+     * Mengembalikan kuantitas tertagih saat faktur dibatalkan.
+     *
+     * Cerminan dari allocateInvoicedQty, dan urutannya sengaja dibalik: yang
+     * terakhir dialokasikan dilepas lebih dulu, sehingga posting lalu batal
+     * mengembalikan keadaan persis seperti semula.
+     *
+     * Tanpa ini pembatalan hanya membalik jurnalnya. Pesanan tetap tercatat
+     * sudah ditagih padahal fakturnya batal, dan tidak akan pernah bisa
+     * ditagih lagi — tersangkut tanpa pesan apa pun.
+     */
+    private function releaseInvoicedQty(PurchaseInvoice $invoice): void
+    {
+        $orders = $invoice->purchaseOrders()->with('items')->orderBy('date')->orderBy('id')->get();
+
+        if ($orders->isEmpty() && $invoice->purchaseOrder) {
+            $orders = collect([$invoice->purchaseOrder->load('items')]);
+        }
+
+        if ($orders->isEmpty()) {
+            return;
+        }
+
+        foreach ($invoice->items as $line) {
+            $sisaFaktur = (float) $line->quantity;
+
+            foreach ($orders->reverse() as $order) {
+                if ($sisaFaktur <= 0) {
+                    break;
+                }
+
+                foreach ($order->items->reverse() as $orderItem) {
+                    if ($sisaFaktur <= 0) {
+                        break;
+                    }
+
+                    if ($orderItem->product_id !== $line->product_id) {
+                        continue;
+                    }
+
+                    // Tidak boleh melepas lebih dari yang pernah tercatat:
+                    // invoiced_qty negatif membuat sisa tagihan melebihi jumlah
+                    // yang dipesan.
+                    $terpakai = min((float) $orderItem->invoiced_qty, $sisaFaktur);
+
+                    if ($terpakai <= 0) {
+                        continue;
+                    }
+
+                    $orderItem->decrement('invoiced_qty', $terpakai);
+                    $sisaFaktur -= $terpakai;
                 }
             }
-        });
+        }
+    }
+
+    /**
+     * Membagi kuantitas yang ditagih ke pesanan-pesanan asalnya.
+     *
+     * Satu faktur bisa menagih beberapa PO sekaligus, dan produk yang sama bisa
+     * muncul di lebih dari satu PO. Alokasinya karena itu dijalankan berurutan
+     * dari pesanan tertua: sisa tiap baris PO diisi sampai penuh sebelum pindah
+     * ke pesanan berikutnya — pesanan yang lebih dulu dibuat semestinya lebih
+     * dulu tuntas.
+     *
+     * Versi sebelumnya menaikkan invoiced_qty pada baris PO pertama yang
+     * produknya cocok tanpa memeriksa sisanya. Dengan satu PO saja itu sudah
+     * bisa melebihi jumlah pesanan; dengan beberapa PO, angkanya menempel pada
+     * pesanan yang salah dan membuat pesanan lain tampak belum tertagih.
+     */
+    private function allocateInvoicedQty(PurchaseInvoice $invoice): void
+    {
+        $orders = $invoice->purchaseOrders()->with('items')->orderBy('date')->orderBy('id')->get();
+
+        // Faktur lama hanya punya kolom tunggalnya.
+        if ($orders->isEmpty() && $invoice->purchaseOrder) {
+            $orders = collect([$invoice->purchaseOrder->load('items')]);
+        }
+
+        if ($orders->isEmpty()) {
+            return;
+        }
+
+        foreach ($invoice->items as $line) {
+            $sisaFaktur = (float) $line->quantity;
+
+            foreach ($orders as $order) {
+                if ($sisaFaktur <= 0) {
+                    break;
+                }
+
+                foreach ($order->items as $orderItem) {
+                    if ($sisaFaktur <= 0) {
+                        break;
+                    }
+
+                    if ($orderItem->product_id !== $line->product_id) {
+                        continue;
+                    }
+
+                    $ruang = $orderItem->uninvoicedQty();
+
+                    if ($ruang <= 0) {
+                        continue;
+                    }
+
+                    $porsi = min($ruang, $sisaFaktur);
+                    $orderItem->increment('invoiced_qty', $porsi);
+                    $sisaFaktur -= $porsi;
+                }
+            }
+        }
     }
 
     public function cancelInvoice(PurchaseInvoice $invoice): void
@@ -180,6 +287,7 @@ class PurchasingPostingService
 
         DB::transaction(function () use ($invoice) {
             $this->journals->reverseForSource($invoice);
+            $this->releaseInvoicedQty($invoice);
             $invoice->forceFill(['status' => 'cancelled'])->save();
             $invoice->recordActivity('cancelled', "Faktur {$invoice->invoice_no} dibatalkan");
         });

@@ -166,7 +166,8 @@ return [
             'modul' => 'purchasing',
             'judul' => 'Catat tagihan supplier lalu bayar',
             'langkah' => [
-                '<span class="path">Pembelian → Faktur Pembelian (Invoice)</span> — buat dari PO agar barisnya tertarik otomatis. Isi nomor faktur supplier dan jatuh temponya.',
+                '<span class="path">Pembelian → Faktur Pembelian (Invoice) → Dari Pesanan Pembelian</span> — pilih supplier, lalu <strong>centang beberapa PO sekaligus</strong> bila supplier mengirim satu tagihan untuk beberapa pesanan. Barisnya tertarik otomatis; produk yang sama dengan harga dan diskon sama digabung menjadi satu baris, sedangkan yang harganya berbeda tetap terpisah karena menggabungkannya akan mengubah nilai tagihan. Isi nomor faktur supplier dan jatuh temponya.',
+                'Saat faktur diposting, kuantitas yang ditagih dibagi ke pesanan asalnya mulai dari yang tertua sampai sisa tiap pesanan habis. Bila faktur dibatalkan, pembagian itu dikembalikan sehingga pesanannya bisa ditagih ulang.',
                 'Simpan, lalu <strong>Posting</strong>.',
                 '<span class="path">Pembelian → Pembayaran ke Supplier → Buat</span>. Pilih supplier dan akun kas/bank, lalu alokasikan ke faktur — boleh ke beberapa faktur sekaligus.',
                 'Simpan, lalu <strong>Posting</strong>.',

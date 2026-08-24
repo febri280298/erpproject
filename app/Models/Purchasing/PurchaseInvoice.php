@@ -54,6 +54,17 @@ class PurchaseInvoice extends Model
         return $this->belongsTo(PurchaseOrder::class);
     }
 
+    /**
+     * Pesanan pembelian yang ditagih faktur ini.
+     *
+     * Kolom tunggal `purchase_order_id` dipertahankan untuk faktur lama;
+     * hubungan yang berlaku sekarang ada di tabel penghubung ini.
+     */
+    public function purchaseOrders(): BelongsToMany
+    {
+        return $this->belongsToMany(PurchaseOrder::class, 'purchase_invoice_purchase_order');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

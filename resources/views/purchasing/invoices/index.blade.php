@@ -5,7 +5,10 @@
 
 @section('actions')
     @can('purchase-invoice.create')
-        <a href="{{ route('purchase-invoices.create') }}" class="btn btn-primary">
+        <a href="{{ route('purchase-invoices.select-orders') }}" class="btn btn-primary">
+            <i class="ti ti-checklist me-1"></i> Dari Pesanan Pembelian
+        </a>
+        <a href="{{ route('purchase-invoices.create') }}" class="btn">
             <i class="ti ti-plus me-1"></i> Buat Faktur
         </a>
     @endcan

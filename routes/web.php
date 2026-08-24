@@ -195,9 +195,18 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('goods-receipts/{goodsReceipt}/print', [GoodsReceiptController::class, 'print'])
             ->name('goods-receipts.print')->middleware('permission:goods-receipt.view');
 
+        // Didaftarkan sebelum resource-nya, supaya `purchase-invoices/select-orders`
+        // tidak tertangkap oleh `purchase-invoices/{purchaseInvoice}` dan berakhir
+        // sebagai pencarian dokumen bernomor "select-orders".
+        Route::get('purchase-invoices/select-orders', [PurchaseInvoiceController::class, 'selectOrders'])
+            ->name('purchase-invoices.select-orders')->middleware('permission:purchase-invoice.create');
+        Route::get('purchase-invoices/from-orders', [PurchaseInvoiceController::class, 'createFromOrders'])
+            ->name('purchase-invoices.from-orders')->middleware('permission:purchase-invoice.create');
+
         $resource('purchase-invoices', PurchaseInvoiceController::class, 'purchase-invoice', 'purchaseInvoice');
         Route::get('purchase-invoices/from-order/{purchaseOrder}', [PurchaseInvoiceController::class, 'createFromOrder'])
             ->name('purchase-invoices.from-order')->middleware('permission:purchase-invoice.create');
+
         Route::post('purchase-invoices/{purchaseInvoice}/post', [PurchaseInvoiceController::class, 'post'])
             ->name('purchase-invoices.post')->middleware('permission:purchase-invoice.post');
         Route::post('purchase-invoices/{purchaseInvoice}/cancel', [PurchaseInvoiceController::class, 'cancel'])

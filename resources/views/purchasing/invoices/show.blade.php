@@ -87,11 +87,22 @@
                     <dd class="col-7"><a href="{{ route('partners.show', $document->partner_id) }}">{{ $document->supplier?->name }}</a></dd>
                     <dt class="col-5 text-secondary">Faktur Pemasok</dt>
                     <dd class="col-7">{{ $document->supplier_invoice_no ?? '—' }}</dd>
-                    <dt class="col-5 text-secondary">Pesanan</dt>
+                    {{-- Satu faktur bisa menagih beberapa pesanan sekaligus,
+                         jadi seluruhnya disebut, bukan hanya yang pertama. --}}
+                    @php
+                        $pesanan = $document->purchaseOrders->isNotEmpty()
+                            ? $document->purchaseOrders
+                            : collect(array_filter([$document->purchaseOrder]));
+                    @endphp
+                    <dt class="col-5 text-secondary">
+                        {{ $pesanan->count() > 1 ? 'Pesanan ('.$pesanan->count().')' : 'Pesanan' }}
+                    </dt>
                     <dd class="col-7">
-                        @if($document->purchaseOrder)
-                            <a href="{{ route('purchase-orders.show', $document->purchase_order_id) }}">{{ $document->purchaseOrder->po_no }}</a>
-                        @else — @endif
+                        @forelse($pesanan as $po)
+                            <a href="{{ route('purchase-orders.show', $po) }}">{{ $po->po_no }}</a>@if(! $loop->last)<br>@endif
+                        @empty
+                            —
+                        @endforelse
                     </dd>
                     <dt class="col-5 text-secondary">Dibuat oleh</dt>
                     <dd class="col-7">{{ $document->creator?->name ?? '—' }}</dd>
