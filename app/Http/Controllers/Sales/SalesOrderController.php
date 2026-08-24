@@ -67,10 +67,45 @@ class SalesOrderController extends LineItemDocumentController
 
     protected function showWith(): array
     {
-        return ['items.product.uom', 'customer', 'warehouse', 'paymentTerm', 'creator', 'approver', 'deliveryOrders', 'invoices'];
+        return ['items.product.uom', 'customer', 'warehouse', 'paymentTerm', 'quotation:id,quotation_no',
+            'creator', 'approver', 'deliveryOrders', 'invoices'];
     }
 
     /** Converts an accepted quotation into a sales order. */
+    /**
+     * Halaman "Buat Pesanan" menawarkan sumbernya lebih dulu.
+     *
+     * Sebelumnya penawaran hanya bisa dikonversi dari halaman penawarannya
+     * sendiri, sehingga orang yang memulai dari menu Pesanan Penjualan mengetik
+     * ulang seluruh barisnya — padahal harganya sudah disepakati dan mengetik
+     * ulang berarti membuka peluang salah ketik pada angka yang sudah final.
+     */
+    public function create(Request $request): View
+    {
+        if ($request->filled('quotation_id')) {
+            $quotation = Quotation::findOrFail($request->query('quotation_id'));
+
+            return $this->createFromQuotation($quotation);
+        }
+
+        if ($request->query('mode') === 'manual') {
+            return parent::create($request);
+        }
+
+        return view("{$this->viewPath}.pilih-sumber", [
+            'nextNumber' => $this->numbers->peek($this->numberModule),
+            // Hanya penawaran yang sudah deal dan belum pernah dikonversi.
+            // canConvert() memakai syarat yang sama, jadi daftar ini tidak
+            // pernah menawarkan sesuatu yang kemudian ditolak.
+            'quotations' => Quotation::query()
+                ->where('status', 'accepted')
+                ->whereDoesntHave('salesOrders')
+                ->with('customer:id,name')
+                ->latest('date')->latest('id')
+                ->get(),
+        ]);
+    }
+
     public function createFromQuotation(Quotation $quotation): View
     {
         abort_unless($quotation->canConvert(), 403, 'Penawaran ini belum diterima atau sudah dikonversi.');

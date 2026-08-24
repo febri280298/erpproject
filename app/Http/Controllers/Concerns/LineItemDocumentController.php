@@ -83,7 +83,12 @@ abstract class LineItemDocumentController extends Controller
         ));
     }
 
-    public function create(): View
+    /**
+     * Request diterima meski tidak dipakai di sini: dokumen yang menawarkan
+     * sumber datanya lebih dulu — misalnya pesanan penjualan yang bisa ditarik
+     * dari penawaran — perlu membaca query-nya saat menimpa method ini.
+     */
+    public function create(Request $request): View
     {
         return view("{$this->viewPath}.form", array_merge([
             'document' => null,

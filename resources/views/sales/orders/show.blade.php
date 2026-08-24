@@ -130,6 +130,17 @@
                     <dd class="col-7"><a href="{{ route('partners.show', $document->partner_id) }}">{{ $document->customer?->name }}</a></dd>
                     <dt class="col-5 text-secondary">Gudang</dt>
                     <dd class="col-7">{{ $document->warehouse?->name }}</dd>
+                    {{-- Asal pesanan perlu terlihat: harga di sini sudah disepakati
+                         di penawarannya, dan orang yang memeriksa harus bisa
+                         langsung membuka sumbernya. --}}
+                    @if($document->quotation_id)
+                        <dt class="col-5 text-secondary">Dari Penawaran</dt>
+                        <dd class="col-7">
+                            <a href="{{ route('quotations.show', $document->quotation_id) }}">
+                                {{ $document->quotation?->quotation_no ?? 'Penawaran #'.$document->quotation_id }}
+                            </a>
+                        </dd>
+                    @endif
                     <dt class="col-5 text-secondary">PO Pelanggan</dt>
                     <dd class="col-7">{{ $document->customer_po_no ?? '—' }}</dd>
                     <dt class="col-5 text-secondary">Termin</dt>

@@ -199,11 +199,13 @@ return [
             'modul' => 'sales',
             'judul' => 'Terima order customer',
             'langkah' => [
-                '<span class="path">Penjualan → Pesanan Penjualan (SO) → Buat</span>.',
-                'Pilih customer — harga seluruh baris langsung menyesuaikan tingkat harganya, dan sumber harga tertulis di atas tabel.',
+                '<span class="path">Penjualan → Pesanan Penjualan (SO) → Buat</span> — pilih sumbernya lebih dulu.',
+                '<strong>Dari penawaran yang sudah deal:</strong> pilih penawarannya, lalu produk, jumlah, harga, dan diskonnya ditarik otomatis. Hanya penawaran berstatus <strong>Diterima</strong> yang muncul, dan yang belum pernah dijadikan pesanan — satu penawaran hanya boleh menjadi satu pesanan. Harga yang sudah disepakati tidak perlu diketik ulang, jadi tidak ada peluang salah ketik pada angka yang sudah final.',
+                '<strong>Tanpa penawaran:</strong> untuk order yang langsung masuk. Pilih customer — harga seluruh baris langsung menyesuaikan tingkat harganya, dan sumber harga tertulis di atas tabel.',
                 'Simpan sebagai Draft, lalu minta <strong>Manajer</strong> menekan <strong>Konfirmasi</strong>.',
             ],
             'periksa' => [
+                'Pesanan yang dibuat dari penawaran menyebut nomor penawarannya di halaman detail, dan bisa diklik untuk membukanya.',
                 'Harga jual berubah bila customer diganti dengan tingkat harga berbeda.',
                 'Staf penjualan tidak dapat mengonfirmasi pesanannya sendiri.',
             ],
