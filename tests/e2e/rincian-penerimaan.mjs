@@ -9,6 +9,7 @@
  * Jalankan: node tests/e2e/rincian-penerimaan.mjs   (HEADED=1 untuk melihatnya)
  */
 import { chromium } from 'playwright';
+import { AMBANG_AA, kontrasDari } from './lib/kontras.mjs';
 
 const PANGKAL = 'http://127.0.0.1:7001';
 
@@ -80,6 +81,23 @@ lapor('Hanya dokumen yang diklik yang terbuka', setelahBuka.length === 1,
 
 lapor('Rincian memuat barangnya', (setelahBuka[0]?.isi.length ?? 0) > 0,
     `${setelahBuka[0]?.dokumen}: ${setelahBuka[0]?.isi.join(' | ') || 'kosong'}`);
+
+/*
+ * Ada isinya belum berarti terbaca. Utilitas latar Tabler berakhiran -lt ikut
+ * memaksa warna teks terang lewat !important, sehingga baris yang tampil di DOM
+ * bisa saja putih di atas latar putih — dan pemeriksaan yang hanya menghitung
+ * baris akan tetap lolos. Jadi rasio kontrasnya yang dituntut, bukan sekadar
+ * keberadaannya.
+ */
+const kontras = await kontrasDari(page, `
+    const tb = document.querySelector('.page-body tbody[x-data]');
+
+    return tb.querySelectorAll(':scope > tr')[1]
+        .querySelector('table')?.tBodies[0]?.rows[0]?.children[1] ?? null;
+`);
+
+lapor('Nama barang cukup kontras untuk dibaca', (kontras?.rasio ?? 0) >= AMBANG_AA,
+    kontras ? `${kontras.rasio}:1 — ${kontras.teks} di atas ${kontras.latar}` : 'sel tidak ditemukan');
 
 // Isi yang terbuka harus benar-benar milik dokumen itu, bukan dokumen lain.
 const cocok = await page.evaluate((nomor) => {

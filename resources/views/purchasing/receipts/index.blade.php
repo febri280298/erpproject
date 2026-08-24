@@ -85,7 +85,11 @@
                         </tr>
 
                         <tr x-show="buka" x-cloak>
-                            <td colspan="9" class="bg-light-lt">
+                            {{-- bg-surface-secondary, BUKAN bg-light-lt: utilitas
+                                 *-lt memaksa color: var(--tblr-light) !important,
+                                 sehingga teks tanpa kelas warna sendiri menjadi
+                                 putih di atas latar terang dan hilang. --}}
+                            <td colspan="9" class="bg-surface-secondary">
                                 @if($document->items->isEmpty())
                                     <div class="text-secondary py-2">Dokumen ini tidak memuat barang.</div>
                                 @else
