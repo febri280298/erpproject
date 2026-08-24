@@ -49,13 +49,26 @@
                           :value="optional($document?->date)->toDateString() ?? now()->toDateString()" required col="col-md-3" />
             <x-form.input name="due_date" label="Jatuh Tempo" type="date"
                           :value="optional($document?->due_date)->toDateString() ?? ($defaultDueDate ?? null)" col="col-md-3" />
-            {{-- Pemasok ikut terisi baik dari satu pesanan maupun dari beberapa.
-                 Tanpa cabang $sourceOrders, isian ini kosong dan validasi
-                 peramban memblokir simpan tanpa pesan yang terlihat. --}}
+            @php
+                /*
+                 * Pemasok terisi baik dari satu pesanan maupun dari beberapa.
+                 * Tanpa cabang $sourceOrders, isian ini kosong pada jalur banyak
+                 * pesanan dan validasi peramban memblokir simpan tanpa pesan
+                 * yang terlihat di layar.
+                 *
+                 * Dihitung di sini, bukan dirangkai dengan ?? di dalam atribut:
+                 * ?? meredam variabel tak terdefinisi hanya untuk akses properti,
+                 * TIDAK untuk pemanggilan method. $sourceOrders->first() tetap
+                 * meledak di halaman Buat Faktur biasa, tempat variabel itu
+                 * memang tidak pernah ada.
+                 */
+                $pemasokTerpilih = $document->partner_id
+                    ?? (isset($sourceOrder) ? $sourceOrder->partner_id : null)
+                    ?? (isset($sourceOrders) ? $sourceOrders->first()?->partner_id : null);
+            @endphp
+
             <x-form.select name="partner_id" label="Pemasok" :options="$suppliers"
-                           :value="$document->partner_id
-                               ?? ($sourceOrder->partner_id ?? ($sourceOrders->first()->partner_id ?? null))"
-                           required col="col-md-6" />
+                           :value="$pemasokTerpilih" required col="col-md-6" />
 
             <x-form.input name="supplier_invoice_no" label="No. Faktur Pemasok"
                           :value="$document->supplier_invoice_no ?? null" col="col-md-4" />
