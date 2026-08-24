@@ -26,3 +26,6 @@ Thumbs.db
 # Hasil uji antarmuka (tangkapan layar & video)
 /tests/e2e/hasil
 /storage/*.backup
+
+# Cadangan basis data berisi data usaha; tidak untuk masuk repositori.
+/backup
