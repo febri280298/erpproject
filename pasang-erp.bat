@@ -31,16 +31,48 @@ echo    ==========================================
 echo.
 
 REM -------------------------------------------------- 0. Prasyarat ----------
+REM  Paket luring: bila vendor\ dan public\build\ sudah ikut tersalin, composer
+REM  dan npm tidak dijalankan sama sekali - dan karena itu tidak perlu
+REM  terpasang. Seluruh pemasangan jadi tidak menyentuh internet, yang penting
+REM  di tempat customer: di sanalah jaringan paling sering mengecewakan, dan
+REM  kita berdiri di depan orangnya tanpa bisa berbuat apa-apa.
+set "ADA_VENDOR="
+set "ADA_BUILD="
+set "LURING="
+if exist "vendor\autoload.php" set "ADA_VENDOR=1"
+if exist "public\build\manifest.json" set "ADA_BUILD=1"
+if defined ADA_VENDOR if defined ADA_BUILD set "LURING=1"
+
 echo    [0/7] Memeriksa prasyarat...
 set "KURANG="
 
 "%PHP%" -v >nul 2>&1 || (echo          - PHP tidak ditemukan & set "KURANG=1")
 if not exist "%XAMPP%\mysql\bin\mysqld.exe" (echo          - MySQL/XAMPP tidak ditemukan di %XAMPP% & set "KURANG=1")
-where composer >nul 2>&1 || (echo          - Composer tidak ditemukan & set "KURANG=1")
-where npm >nul 2>&1 || (echo          - Node.js/npm tidak ditemukan & set "KURANG=1")
+
+REM Composer hanya diperiksa bila pustakanya memang harus diunduh.
+if not defined ADA_VENDOR (
+    where composer >nul 2>&1
+    if errorlevel 1 (
+        echo          - Composer tidak ditemukan
+        set "KURANG=1"
+    )
+)
+if not defined ADA_BUILD (
+    where npm >nul 2>&1
+    if errorlevel 1 (
+        echo          - Node.js/npm tidak ditemukan
+        set "KURANG=1"
+    )
+)
 
 if defined KURANG goto :prasyarat_kurang
-echo          PHP, MySQL, Composer, dan Node.js siap.
+if defined LURING (
+    echo          PHP dan MySQL siap.
+    echo          Pustaka dan tampilan sudah ikut tersalin - Composer dan
+    echo          Node.js tidak diperlukan di komputer ini.
+) else (
+    echo          Prasyarat siap.
+)
 
 REM -------------------------------------------------- 1. Berkas .env --------
 echo    [1/7] Menyiapkan berkas .env...
@@ -71,10 +103,14 @@ if errorlevel 1 goto :db_gagal
 echo          Basis data siap.
 
 REM -------------------------------------------------- 4. Pustaka PHP --------
-echo    [4/7] Memasang pustaka PHP (composer install)...
-echo          Ini bisa memakan beberapa menit pada pemasangan pertama.
-call composer install --no-interaction --prefer-dist
-if errorlevel 1 goto :composer_gagal
+if defined ADA_VENDOR (
+    echo    [4/7] Pustaka PHP sudah ikut tersalin - composer install dilewati.
+) else (
+    echo    [4/7] Memasang pustaka PHP ^(composer install^)...
+    echo          Ini bisa memakan beberapa menit pada pemasangan pertama.
+    call composer install --no-interaction --prefer-dist
+    if errorlevel 1 goto :composer_gagal
+)
 
 REM -------------------------------------------------- 5. Kunci aplikasi -----
 echo    [5/7] Menyiapkan kunci aplikasi...
@@ -119,11 +155,15 @@ if "!ADA_DATA!"=="0" (
 )
 
 REM -------------------------------------------------- 7. Aset & pintasan ----
-echo    [7/7] Membangun tampilan dan membuat pintasan...
-call npm install
-if errorlevel 1 goto :npm_gagal
-call npm run build
-if errorlevel 1 goto :npm_gagal
+if defined ADA_BUILD (
+    echo    [7/7] Tampilan sudah ikut tersalin - npm dilewati. Membuat pintasan...
+) else (
+    echo    [7/7] Membangun tampilan dan membuat pintasan...
+    call npm install
+    if errorlevel 1 goto :npm_gagal
+    call npm run build
+    if errorlevel 1 goto :npm_gagal
+)
 
 "%PHP%" artisan storage:link >nul 2>&1
 call "%~dp0buat-shortcut.bat" >nul 2>&1
@@ -178,6 +218,10 @@ echo    Pasang dulu yang bertanda "-" di atas:
 echo      XAMPP ^(PHP 8.2 + MySQL^)  https://www.apachefriends.org
 echo      Composer                   https://getcomposer.org/download
 echo      Node.js LTS                https://nodejs.org
+echo.
+echo    Composer dan Node.js hanya diperlukan bila folder vendor\ dan
+echo    public\build\ belum ikut tersalin. Pada paket serah terima keduanya
+echo    sudah ikut, jadi XAMPP saja sudah cukup.
 echo.
 echo    Setelah terpasang, TUTUP jendela ini lalu jalankan lagi
 echo    supaya PATH yang baru terbaca.

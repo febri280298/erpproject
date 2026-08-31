@@ -2,6 +2,11 @@
 
 Panduan ini untuk memindahkan atau memasang sistem di laptop/PC baru.
 
+> Memasang di tempat **customer**? Pakai
+> [PANDUAN-SERAH-TERIMA.md](PANDUAN-SERAH-TERIMA.md). Urutannya berbeda: ada
+> langkah menyiapkan `.env` sebelum pemasangan supaya transaksi contoh tidak
+> ikut masuk ke basis data mereka.
+
 Ada dua hal yang harus ikut pindah, dan keduanya berbeda tempat:
 
 | Yang pindah | Isinya | Cara membawa |
