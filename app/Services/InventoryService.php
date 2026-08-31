@@ -97,10 +97,32 @@ class InventoryService
             }
 
             $unitCost = $forcedUnitCost ?? (float) $stock->avg_cost;
+
+            // Rata-rata 0 berarti barangnya belum pernah diterima sama sekali —
+            // hal yang baru mungkin terjadi sejak stok negatif diizinkan.
+            // Tanpa pengganti, barang terkirim dengan HPP nol: persediaan tidak
+            // pernah dikreditkan dan laba tercatat terlalu besar, dan tidak ada
+            // yang memperbaikinya ketika barangnya akhirnya datang. Harga beli
+            // di master dipakai sebagai taksiran; rata-rata sebenarnya
+            // terbentuk saat penerimaan.
+            if ($forcedUnitCost === null && $unitCost <= 0.0) {
+                $unitCost = (float) (Product::find($productId)?->purchase_price ?? 0);
+            }
+
             $newQty = round($available - $quantity, 4);
             $newValue = round($newQty * $unitCost, 2);
 
-            $stock->forceFill(['quantity' => $newQty])->save();
+            $fill = ['quantity' => $newQty];
+
+            // Taksirannya ikut disimpan sebagai rata-rata. Kalau tidak,
+            // penerimaan berikutnya menilai saldo minus ini sebagai nol dan
+            // rata-ratanya melonjak: 12 keluar lalu 20 masuk @139.000
+            // menghasilkan rata-rata 347.500, bukan 139.000.
+            if ((float) $stock->avg_cost <= 0.0 && $unitCost > 0.0) {
+                $fill['avg_cost'] = round($unitCost, 4);
+            }
+
+            $stock->forceFill($fill)->save();
 
             return $this->writeMovement(
                 StockMovement::OUT, $productId, $warehouseId, $quantity, $unitCost,

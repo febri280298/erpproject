@@ -202,7 +202,7 @@
                     <div class="row g-3">
                         <x-form.checkbox name="allow_negative_stock" label="Izinkan stok negatif"
                                          :value="$settings['allow_negative_stock'] ?? false" col="col-md-6"
-                                         help="Jika nonaktif, pengeluaran barang melebihi stok akan ditolak." />
+                                         help="Aktif: barang tetap bisa dikirim meski stoknya kurang — stok menjadi minus lalu kembali benar saat Penerimaan Barang diposting. Barang yang belum pernah diterima memakai harga beli di master produk sebagai taksiran HPP. Nonaktif: pengeluaran melebihi stok ditolak." />
                         <x-form.checkbox name="require_po_approval" label="Wajib persetujuan pesanan pembelian"
                                          :value="$settings['require_po_approval'] ?? true" col="col-md-6" />
 
