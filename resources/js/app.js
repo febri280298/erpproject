@@ -5,6 +5,7 @@ import Alpine from 'alpinejs';
 
 import deliveryItems from './delivery-items';
 import docItems from './doc-items';
+import pasangPemilihKolom from './kolom-tabel';
 import partnerPriceRows from './partner-price-rows';
 import pasangInisialMitra from './inisial-mitra';
 import pasangSelectPencarian from './select-search';
@@ -57,6 +58,9 @@ Alpine.start();
 
 pasangSelectPencarian();
 pasangInisialMitra();
+
+// Tabel baru dirender server, jadi cukup dipasang sekali setelah DOM siap.
+document.addEventListener('DOMContentLoaded', () => pasangPemilihKolom());
 
 // Auto-dismiss flash alerts after 6s
 document.addEventListener('DOMContentLoaded', () => {
