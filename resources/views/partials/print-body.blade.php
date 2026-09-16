@@ -8,10 +8,15 @@
      * @var array  $meta        pasangan label => nilai di kolom kanan
      * @var object $partner     lawan transaksi (nama/alamat/telepon)
      * @var string $partnerRole judul di atas blok lawan transaksi
+     * @var string $partnerAddress alamat pengganti; dipakai surat jalan yang
+     *                          tujuannya berbeda dari alamat mitra terdaftar
      * @var bool   $showPrice   sertakan kolom uang dan blok total
      * @var array  $signatures  ['Dibuat oleh', 'Disetujui oleh', …]
      */
     $showPrice = $showPrice ?? true;
+
+    // Alamat mitra terdaftar dipakai kecuali dokumennya menyebut tujuan lain.
+    $partnerAddress = $partnerAddress ?? $partner?->address;
     $signatures = $signatures ?? ['Dibuat oleh', 'Disetujui oleh', 'Diterima oleh'];
     $footerNote = $footerNote ?? null;
 
@@ -31,27 +36,34 @@
     $adaDiskonBaris = $document->items->contains(fn ($i) => (float) $i->discount_percent > 0);
 @endphp
 
-<div class="party avoid-break">
-    <div>
-        <div class="label">{{ $partnerRole }}</div>
-        <div class="party-name">{{ $partner?->name ?? '—' }}</div>
-        <div class="party-detail">
-            {!! nl2br(e($partner?->address ?? '')) !!}
-            @if($partner?->phone)<br>Telp {{ $partner->phone }}@endif
-            @if($partner?->npwp)<br>NPWP {{ $partner->npwp }}@endif
-        </div>
-    </div>
-    <div>
-        <table class="meta">
-            @foreach($meta as $label => $value)
-                <tr>
-                    <td class="k">{{ $label }}</td>
-                    <td class="v">{{ $value }}</td>
-                </tr>
-            @endforeach
-        </table>
-    </div>
-</div>
+{{-- Bidang berdampingan memakai tabel sungguhan, bukan flexbox: dokumen ini
+     juga dirender dompdf untuk unduhan PDF, dan dompdf tidak mengenal
+     display:flex sama sekali — kolomnya akan menumpuk ke bawah tanpa
+     peringatan apa pun. Tabel dirender sama persis oleh peramban maupun
+     dompdf, jadi cukup satu markup untuk keduanya. --}}
+<table class="party avoid-break">
+    <tr>
+        <td>
+            <div class="label">{{ $partnerRole }}</div>
+            <div class="party-name">{{ $partner?->name ?? '—' }}</div>
+            <div class="party-detail">
+                {!! nl2br(e($partnerAddress ?? '')) !!}
+                @if($partner?->phone)<br>Telp {{ $partner->phone }}@endif
+                @if($partner?->npwp)<br>NPWP {{ $partner->npwp }}@endif
+            </div>
+        </td>
+        <td>
+            <table class="meta">
+                @foreach($meta as $label => $value)
+                    <tr>
+                        <td class="k">{{ $label }}</td>
+                        <td class="v">{{ $value }}</td>
+                    </tr>
+                @endforeach
+            </table>
+        </td>
+    </tr>
+</table>
 
 <table class="items">
     <thead>
@@ -107,99 +119,101 @@
             || (float) ($document->paid_amount ?? 0) > 0;
     @endphp
 
-    <div class="party avoid-break" style="margin-bottom:0">
-        <div>
-            @if($document->notes)
-                <div class="note-block">
-                    <strong>Catatan</strong><br>{!! nl2br(e($document->notes)) !!}
+    <table class="party avoid-break" style="margin-bottom:0">
+        <tr>
+            <td>
+                @if($document->notes)
+                    <div class="note-block">
+                        <strong>Catatan</strong><br>{!! nl2br(e($document->notes)) !!}
+                    </div>
+                @endif
+                @if(! empty($document->terms))
+                    <div class="note-block">
+                        <strong>Syarat &amp; Ketentuan</strong><br>{!! nl2br(e($document->terms)) !!}
+                    </div>
+                @endif
+
+                {{-- Terbilang punya bobot hukum pada faktur, jadi diberi bingkainya sendiri. --}}
+                <div class="terbilang">
+                    <span class="label">Terbilang</span><br>
+                    <em>{{ terbilang((float) $document->total) }}</em>
                 </div>
-            @endif
-            @if(! empty($document->terms))
-                <div class="note-block">
-                    <strong>Syarat &amp; Ketentuan</strong><br>{!! nl2br(e($document->terms)) !!}
-                </div>
-            @endif
+            </td>
 
-            {{-- Terbilang punya bobot hukum pada faktur, jadi diberi bingkainya sendiri. --}}
-            <div class="terbilang">
-                <span class="label">Terbilang</span><br>
-                <em>{{ terbilang((float) $document->total) }}</em>
-            </div>
-        </div>
-
-        <div>
-            <table class="totals">
-                <tr>
-                    <td class="t-label">Subtotal (DPP)</td>
-                    <td class="t-value">{{ rupiah($document->subtotal, null, false) }}</td>
-                </tr>
-
-                @if((float) ($document->dpp_other_amount ?? 0) > 0
-                    && abs((float) $document->dpp_other_amount - (float) $document->subtotal) >= 0.01)
+            <td>
+                <table class="totals">
                     <tr>
-                        <td class="t-label">
-                            DPP Nilai Lain
-                            ({{ app(\App\Services\LineItemCalculator::class)->ratioLabel() }})
-                        </td>
-                        <td class="t-value">{{ rupiah($document->dpp_other_amount, null, false) }}</td>
+                        <td class="t-label">Subtotal (DPP)</td>
+                        <td class="t-value">{{ rupiah($document->subtotal, null, false) }}</td>
                     </tr>
-                @endif
 
-                @if((float) $document->discount_amount > 0)
+                    @if((float) ($document->dpp_other_amount ?? 0) > 0
+                        && abs((float) $document->dpp_other_amount - (float) $document->subtotal) >= 0.01)
+                        <tr>
+                            <td class="t-label">
+                                DPP Nilai Lain
+                                ({{ app(\App\Services\LineItemCalculator::class)->ratioLabel() }})
+                            </td>
+                            <td class="t-value">{{ rupiah($document->dpp_other_amount, null, false) }}</td>
+                        </tr>
+                    @endif
+
+                    @if((float) $document->discount_amount > 0)
+                        <tr>
+                            <td class="t-label">Diskon</td>
+                            <td class="t-value">({{ rupiah($document->discount_amount, null, false) }})</td>
+                        </tr>
+                    @endif
+
+                    @if((float) $document->shipping_cost > 0)
+                        <tr>
+                            <td class="t-label">Biaya Kirim</td>
+                            <td class="t-value">{{ rupiah($document->shipping_cost, null, false) }}</td>
+                        </tr>
+                    @endif
+
                     <tr>
-                        <td class="t-label">Diskon</td>
-                        <td class="t-value">({{ rupiah($document->discount_amount, null, false) }})</td>
+                        <td class="t-label">PPN</td>
+                        <td class="t-value">{{ rupiah($document->tax_amount, null, false) }}</td>
                     </tr>
-                @endif
 
-                @if((float) $document->shipping_cost > 0)
-                    <tr>
-                        <td class="t-label">Biaya Kirim</td>
-                        <td class="t-value">{{ rupiah($document->shipping_cost, null, false) }}</td>
+                    <tr class="grand">
+                        <td>TOTAL</td>
+                        <td class="t-value">{{ rupiah($document->total) }}</td>
                     </tr>
-                @endif
 
-                <tr>
-                    <td class="t-label">PPN</td>
-                    <td class="t-value">{{ rupiah($document->tax_amount, null, false) }}</td>
-                </tr>
+                    {{-- PPh 23 disetor sendiri oleh customer, jadi yang ditransfer lebih kecil. --}}
+                    @if((float) ($document->wht_amount ?? 0) > 0)
+                        <tr>
+                            <td class="t-label">PPh 23 ({{ fnum($document->wht_rate) }}%)</td>
+                            <td class="t-value">({{ rupiah($document->wht_amount, null, false) }})</td>
+                        </tr>
+                    @endif
 
-                <tr class="grand">
-                    <td>TOTAL</td>
-                    <td class="t-value">{{ rupiah($document->total) }}</td>
-                </tr>
+                    @if((float) ($document->paid_amount ?? 0) > 0)
+                        <tr>
+                            <td class="t-label">Sudah dibayar</td>
+                            <td class="t-value">({{ rupiah($document->paid_amount, null, false) }})</td>
+                        </tr>
+                    @endif
 
-                {{-- PPh 23 disetor sendiri oleh customer, jadi yang ditransfer lebih kecil. --}}
-                @if((float) ($document->wht_amount ?? 0) > 0)
-                    <tr>
-                        <td class="t-label">PPh 23 ({{ fnum($document->wht_rate) }}%)</td>
-                        <td class="t-value">({{ rupiah($document->wht_amount, null, false) }})</td>
-                    </tr>
-                @endif
-
-                @if((float) ($document->paid_amount ?? 0) > 0)
-                    <tr>
-                        <td class="t-label">Sudah dibayar</td>
-                        <td class="t-value">({{ rupiah($document->paid_amount, null, false) }})</td>
-                    </tr>
-                @endif
-
-                {{-- Baris terakhir adalah angka yang benar-benar harus ditransfer.
-                     Hanya muncul bila memang berbeda dari TOTAL, supaya tidak ada
-                     dua angka besar yang bersaing tanpa alasan. --}}
-                @if($adaPphOrBayar)
-                    <tr class="due">
-                        <td>{{ (float) ($document->paid_amount ?? 0) > 0 ? 'SISA TAGIHAN' : 'DIBAYAR' }}</td>
-                        <td class="t-value">
-                            {{ rupiah(method_exists($document, 'outstandingAmount') && (float) ($document->paid_amount ?? 0) > 0
-                                ? $document->outstandingAmount()
-                                : (method_exists($document, 'amountDue') ? $document->amountDue() : $document->total)) }}
-                        </td>
-                    </tr>
-                @endif
-            </table>
-        </div>
-    </div>
+                    {{-- Baris terakhir adalah angka yang benar-benar harus ditransfer.
+                         Hanya muncul bila memang berbeda dari TOTAL, supaya tidak ada
+                         dua angka besar yang bersaing tanpa alasan. --}}
+                    @if($adaPphOrBayar)
+                        <tr class="due">
+                            <td>{{ (float) ($document->paid_amount ?? 0) > 0 ? 'SISA TAGIHAN' : 'DIBAYAR' }}</td>
+                            <td class="t-value">
+                                {{ rupiah(method_exists($document, 'outstandingAmount') && (float) ($document->paid_amount ?? 0) > 0
+                                    ? $document->outstandingAmount()
+                                    : (method_exists($document, 'amountDue') ? $document->amountDue() : $document->total)) }}
+                            </td>
+                        </tr>
+                    @endif
+                </table>
+            </td>
+        </tr>
+    </table>
 @elseif($document->notes)
     <div class="note-block avoid-break"><strong>Catatan</strong><br>{{ $document->notes }}</div>
 @endif
@@ -208,46 +222,52 @@
     <p class="note-block mt-3">{{ $footerNote }}</p>
 @endif
 
-<div class="closing">
-    {{-- Kolom kiri hanya ada bila tanda tangannya tunggal. Pada faktur ia
-         berisi rekening tujuan transfer; pada PO dibiarkan kosong supaya
-         tanda tangannya tetap jatuh di kanan. --}}
-    @if(count($signatures) === 1)
-        <div>
-            @if($showBank)
-                <div class="pay-box">
-                    <div class="label">Pembayaran ditransfer ke</div>
-                    <table class="meta" style="margin-top:1.5mm">
-                        @if($company['bank_name'])
-                            <tr><td class="k">Bank</td><td class="v">{{ $company['bank_name'] }}</td></tr>
-                        @endif
-                        <tr><td class="k">Nomor Rekening</td><td class="v">{{ $company['bank_account'] }}</td></tr>
-                        @if($company['bank_holder'])
-                            <tr><td class="k">Atas Nama</td><td class="v">{{ $company['bank_holder'] }}</td></tr>
-                        @endif
-                    </table>
-                </div>
-            @endif
-        </div>
-    @endif
+<table class="closing">
+    <tr>
+        {{-- Kolom kiri hanya ada bila tanda tangannya tunggal. Pada faktur ia
+             berisi rekening tujuan transfer; pada PO dibiarkan kosong supaya
+             tanda tangannya tetap jatuh di kanan. --}}
+        @if(count($signatures) === 1)
+            <td>
+                @if($showBank)
+                    <div class="pay-box">
+                        <div class="label">Pembayaran ditransfer ke</div>
+                        <table class="meta" style="margin-top:1.5mm">
+                            @if($company['bank_name'])
+                                <tr><td class="k">Bank</td><td class="v">{{ $company['bank_name'] }}</td></tr>
+                            @endif
+                            <tr><td class="k">Nomor Rekening</td><td class="v">{{ $company['bank_account'] }}</td></tr>
+                            @if($company['bank_holder'])
+                                <tr><td class="k">Atas Nama</td><td class="v">{{ $company['bank_holder'] }}</td></tr>
+                            @endif
+                        </table>
+                    </div>
+                @endif
+            </td>
+        @endif
 
-    {{-- Tanda tangan di kanan, sebagaimana lazimnya surat resmi. Dokumen
-         bertanda tangan banyak tetap melebar penuh karena kolom kiri di atas
-         tidak dirender. --}}
-    <div class="signatures">
-        @foreach($signatures as $signature)
-            <div>
-                {{-- Tanggal hanya di kolom terakhir; diulang di tiap kolom
-                     justru terbaca berantakan. Kota sengaja tidak dicantumkan
-                     karena profil perusahaan belum menyimpannya — menebaknya
-                     dari alamat lebih berisiko salah daripada berguna. --}}
-                <div class="label" style="visibility:{{ $loop->last ? 'visible' : 'hidden' }}">
-                    {{ fdate($document->date ?? now()) }}
-                </div>
-                <div style="font-size:8.5pt; margin-top:1mm">{{ $signature }}</div>
-                <div style="height:17mm"></div>
-                <div class="sign-rule">Nama &amp; Tanda Tangan</div>
-            </div>
-        @endforeach
-    </div>
-</div>
+        {{-- Tanda tangan di kanan, sebagaimana lazimnya surat resmi. Dokumen
+             bertanda tangan banyak tetap melebar penuh karena kolom kiri di atas
+             tidak dirender. --}}
+        <td>
+            <table class="signatures">
+                <tr>
+                    @foreach($signatures as $signature)
+                        <td>
+                            {{-- Tanggal hanya di kolom terakhir; diulang di tiap kolom
+                                 justru terbaca berantakan. Kota sengaja tidak dicantumkan
+                                 karena profil perusahaan belum menyimpannya — menebaknya
+                                 dari alamat lebih berisiko salah daripada berguna. --}}
+                            <div class="label" style="visibility:{{ $loop->last ? 'visible' : 'hidden' }}">
+                                {{ fdate($document->date ?? now()) }}
+                            </div>
+                            <div style="font-size:8.5pt; margin-top:1mm">{{ $signature }}</div>
+                            <div style="height:17mm"></div>
+                            <div class="sign-rule">Nama &amp; Tanda Tangan</div>
+                        </td>
+                    @endforeach
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>

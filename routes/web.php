@@ -234,6 +234,8 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('quotations.transition')->middleware('permission:quotation.edit');
         Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])
             ->name('quotations.print')->middleware('permission:quotation.view');
+        Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'pdf'])
+            ->name('quotations.pdf')->middleware('permission:quotation.view');
 
         Route::get('sales-orders/from-quotation/{quotation}', [SalesOrderController::class, 'createFromQuotation'])
             ->name('sales-orders.from-quotation')->middleware('permission:sales-order.create');

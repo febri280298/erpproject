@@ -8,9 +8,11 @@ use App\Http\Controllers\Concerns\LineItemDocumentController;
 use App\Models\Master\Partner;
 use App\Models\Sales\Quotation;
 use App\Services\SettingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -93,6 +95,25 @@ class QuotationController extends LineItemDocumentController
     }
 
     /** Satu penawaran sebagai lembar kerja Excel, lengkap dengan rumus total. */
+    /**
+     * Unduh penawaran sebagai PDF.
+     *
+     * Memakai view cetak yang sama dengan pratinjau layar, hanya dibungkus
+     * layouts.pdf — jadi berkas yang dikirim ke customer tidak pernah berbeda
+     * dari yang dilihat di layar sebelum dikirim.
+     */
+    public function pdf(Quotation $quotation): Response
+    {
+        $quotation->load('items.product.uom', 'customer');
+
+        return Pdf::loadView("{$this->viewPath}.print", [
+            'document' => $quotation,
+            'layout' => 'layouts.pdf',
+        ])
+            ->setPaper('a4')
+            ->download('Penawaran-'.str_replace('/', '-', $quotation->quotation_no).'.pdf');
+    }
+
     public function excel(Quotation $quotation, SettingService $settings): BinaryFileResponse
     {
         $quotation->load('items.product.uom', 'customer', 'creator');

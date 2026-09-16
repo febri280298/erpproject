@@ -1,4 +1,7 @@
-@extends('layouts.print')
+{{-- Layout ditentukan pemanggilnya: layouts.print untuk pratinjau di layar,
+     layouts.pdf saat diunduh sebagai berkas. Isinya sama, hanya pembungkusnya
+     yang berbeda. --}}
+@extends($layout ?? 'layouts.print')
 
 @section('title', 'Quotation ' . $document->quotation_no)
 @section('doc-title', 'Quotation')

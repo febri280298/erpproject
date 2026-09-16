@@ -8,6 +8,10 @@
         <i class="ti ti-printer me-1"></i> Cetak
     </a>
 
+    <a href="{{ route('quotations.pdf', $document) }}" class="btn">
+        <i class="ti ti-file-type-pdf me-1"></i> PDF
+    </a>
+
     <a href="{{ route('quotations.excel', $document) }}" class="btn">
         <i class="ti ti-file-spreadsheet me-1"></i> Excel
     </a>

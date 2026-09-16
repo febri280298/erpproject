@@ -112,7 +112,32 @@ for (const [nama, daftar, adaHarga] of DOKUMEN) {
             meluber: [...new Set(meluber)],
             adaKop: !!document.querySelector('.company-name') && !!document.querySelector('.doc-type'),
             adaPihak: !!document.querySelector('.party-name'),
-            adaTtd: document.querySelectorAll('.signatures > *').length,
+            /*
+             * Bidang berdampingan diukur dari posisinya, bukan sekadar dihitung
+             * ada berapa. Kop, identitas pihak, dan tanda tangan memakai tabel
+             * agar dompdf bisa merendernya untuk unduhan PDF — dan kalau
+             * tabelnya rusak, kolomnya menumpuk ke bawah sementara jumlahnya
+             * tetap sama. Menghitung saja tidak akan menangkapnya.
+             */
+            sejajar: ['.letterhead', '.party', '.signatures'].flatMap((induk) =>
+                // Tiap tabel diperiksa sendiri-sendiri: dokumen berharga punya
+                // DUA tabel .party — identitas di atas, catatan & total di
+                // bawah. Mengukurnya sekaligus akan selalu tampak menumpuk
+                // karena keduanya memang berbeda tinggi.
+                [...document.querySelectorAll(induk)].map((tabel, i) => {
+                    const sel = [...tabel.querySelectorAll(':scope > tbody > tr > td')]
+                        .map((el) => el.getBoundingClientRect());
+
+                    return {
+                        induk: induk.slice(1) + (i ? `#${i + 1}` : ''),
+                        jumlah: sel.length,
+                        sejajar: sel.length < 2 || sel.every(
+                            (r, j) => Math.abs(r.top - sel[0].top) <= 2 && (j === 0 || r.left > sel[j - 1].left)
+                        ),
+                    };
+                })
+            ),
+            adaTtd: document.querySelectorAll('.signatures > tbody > tr > td').length,
             adaTotal: /TOTAL/.test(teks),
             adaTerbilang: /Terbilang/i.test(teks),
         };
@@ -124,6 +149,12 @@ for (const [nama, daftar, adaHarga] of DOKUMEN) {
         d.meluber.length ? d.meluber.join(', ') : 'pas dalam 186 mm');
     lapor('Kop & identitas pihak ada', d.adaKop && d.adaPihak, '');
     lapor('Blok tanda tangan ada', d.adaTtd >= 1, `${d.adaTtd} kolom`);
+
+    const menumpuk = d.sejajar.filter((b) => ! b.sejajar).map((b) => b.induk);
+    lapor('Bidang berdampingan sejajar', menumpuk.length === 0,
+        menumpuk.length
+            ? menumpuk.join(', ') + ' menumpuk ke bawah'
+            : d.sejajar.map((b) => `${b.induk} ${b.jumlah}`).join(' · '));
 
     if (adaHarga) {
         lapor('Blok total & terbilang ada', d.adaTotal && d.adaTerbilang, '');
