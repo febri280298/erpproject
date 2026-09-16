@@ -29,3 +29,7 @@ Thumbs.db
 
 # Cadangan basis data berisi data usaha; tidak untuk masuk repositori.
 /backup
+
+# Ceklist siap cetak dibuat ulang oleh cetak-ceklist.bat dari berkas .md-nya;
+# yang tersimpan di repositori cukup sumbernya.
+/CEKLIST-SERAH-TERIMA.pdf
