@@ -166,7 +166,7 @@ if defined ADA_BUILD (
 )
 
 "%PHP%" artisan storage:link >nul 2>&1
-call "%~dp0buat-shortcut.bat" >nul 2>&1
+call "%~dp0buat-shortcut.bat" /tanpajeda >nul 2>&1
 
 echo.
 echo    ==========================================

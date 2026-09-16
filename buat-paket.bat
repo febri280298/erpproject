@@ -155,6 +155,22 @@ if defined MASTERSQL (
 
 copy /Y "%SUMBER%PANDUAN-SERAH-TERIMA.md" "%PAKET%\" >nul
 copy /Y "%SUMBER%PANDUAN-INSTALASI.md" "%PAKET%\" >nul
+copy /Y "%SUMBER%CEKLIST-SERAH-TERIMA.md" "%PAKET%\" >nul
+
+REM  Ceklistnya ikut sebagai PDF karena dipakai dengan cara dicetak, dicentang
+REM  pakai pena, lalu ditandatangani. Selalu dibuat ulang di sini dari berkas
+REM  .md, bukan disalin apa adanya: PDF lama yang isinya sudah tertinggal tidak
+REM  akan terlihat keliru oleh siapa pun yang memegangnya di depan customer.
+set "PHPEXE=C:\xampp\php\php.exe"
+if not exist "%PHPEXE%" set "PHPEXE=php"
+"%PHPEXE%" "%SUMBER%scripts\ceklist-pdf.php" "%SUMBER%CEKLIST-SERAH-TERIMA.md" "%PAKET%\CEKLIST-SERAH-TERIMA.pdf" >nul 2>&1
+if exist "%PAKET%\CEKLIST-SERAH-TERIMA.pdf" (
+    echo          Ceklist siap cetak ikut dalam paket.
+) else (
+    echo          PERINGATAN: CEKLIST-SERAH-TERIMA.pdf gagal dibuat.
+    echo                      Paket tetap jadi, tetapi lembar ceklistnya belum
+    echo                      ada. Jalankan cetak-ceklist.bat sebelum berangkat.
+)
 
 REM ------------------------------------------- 6. Catatan -----------------
 echo    [6/6] Menulis catatan...
@@ -197,6 +213,12 @@ echo      2. Salin seluruh folder ini ke flashdisk.
 echo.
 echo    Di tempat customer, buka BACA-DULU.txt lebih dulu.
 echo.
+
+REM Foldernya dibuka langsung. Letaknya SEJAJAR dengan folder proyek, bukan di
+REM dalamnya, dan itu berkali-kali membuat orang mencarinya di tempat yang
+REM salah - termasuk ketika jalurnya sudah tercetak di layar.
+start "" "%PAKET%"
+
 pause
 exit /b 0
 
@@ -213,7 +235,9 @@ set "B=%PAKET%\BACA-DULU.txt"
 >>"%B%" echo      1-PEMASANG\   pemasang XAMPP
 >>"%B%" echo      2-APLIKASI\   folder aplikasi, sudah lengkap
 >>"%B%" echo      3-DATA\       data master dari kantor, transaksi kosong
->>"%B%" echo      PANDUAN-SERAH-TERIMA.md   langkah lengkap beserta checklist
+>>"%B%" echo      PANDUAN-SERAH-TERIMA.md   langkah lengkap
+>>"%B%" echo      CEKLIST-SERAH-TERIMA.pdf  lembar untuk dicetak, dicentang di
+>>"%B%" echo                                lokasi, lalu ditandatangani bersama
 >>"%B%" echo.
 >>"%B%" echo.
 >>"%B%" echo    URUTAN DI KOMPUTER CUSTOMER
@@ -238,6 +262,9 @@ set "B=%PAKET%\BACA-DULU.txt"
 >>"%B%" echo    6. Buka PANDUAN-SERAH-TERIMA.md, kerjakan Langkah 7 sampai 15:
 >>"%B%" echo       buktikan transaksi nol, isi profil perusahaan, lalu ganti
 >>"%B%" echo       semua kata sandi.
+>>"%B%" echo.
+>>"%B%" echo    7. Centang CEKLIST-SERAH-TERIMA.pdf sambil mengerjakan - cetak
+>>"%B%" echo       dua rangkap - lalu tanda tangani bersama customer.
 >>"%B%" echo.
 >>"%B%" echo.
 >>"%B%" echo    Alamat aplikasi setelah terpasang:  http://127.0.0.1:7001

@@ -35,4 +35,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "Write-Host ('   Selesai. Shortcut ada di: ' + $d)"
 
 echo.
-pause
+
+REM Berhenti menunggu tombol HANYA bila skrip ini diklik sendiri.
+REM
+REM pasang-erp.bat memanggilnya dengan output dibungkam (>nul 2>&1), dan itu
+REM ikut membungkam tulisan "Press any key to continue" milik pause. Layarnya
+REM lalu diam tanpa sebab yang terlihat — tampak menggantung, padahal hanya
+REM menunggu tombol yang tak seorang pun tahu harus ditekan. Pernah terjadi di
+REM depan customer.
+if /I not "%~1"=="/tanpajeda" pause

@@ -82,10 +82,12 @@ Klik dua kali **`buat-paket.bat`**. Hasilnya satu folder
 
 ```
 PAKET-ERP-PEAK\
-├── BACA-DULU.txt            enam langkah ringkas untuk di lokasi
+├── BACA-DULU.txt            tujuh langkah ringkas untuk di lokasi
 ├── 1-PEMASANG\              tempat menaruh pemasang XAMPP
 ├── 2-APLIKASI\Erppeak\      aplikasi lengkap, .env sudah siap produksi
 ├── 3-DATA\                  erppeak-master-….sql dari A1
+├── CEKLIST-SERAH-TERIMA.pdf lembar untuk dicetak dan ditandatangani
+├── CEKLIST-SERAH-TERIMA.md
 ├── PANDUAN-SERAH-TERIMA.md
 └── PANDUAN-INSTALASI.md
 ```
@@ -110,6 +112,8 @@ Setelah skripnya selesai, tinggal dua hal:
 - [ ] Unduh pemasang **XAMPP** (PHP 8.2+) dari https://www.apachefriends.org,
       taruh di folder `1-PEMASANG\`. Unduh **di kantor** — jangan diandalkan
       bisa mengunduh di tempat customer.
+- [ ] Cetak `CEKLIST-SERAH-TERIMA.pdf` dari dalam paket, **dua rangkap** —
+      satu ditinggal untuk customer, satu dibawa pulang.
 - [ ] Salin seluruh folder `PAKET-ERP-PEAK` ke flashdisk.
 
 Bawa juga data master customer bila sudah dikumpulkan — daftar produk,
@@ -458,44 +462,34 @@ ditutup.
 
 ## Langkah 15 — Checklist serah terima
 
-Tanda tangani bersama customer setelah semuanya tercentang.
+Daftar centangnya ada di lembar tersendiri,
+**[CEKLIST-SERAH-TERIMA.md](CEKLIST-SERAH-TERIMA.md)** — dan versi cetaknya,
+`CEKLIST-SERAH-TERIMA.pdf`, sudah ikut di dalam paket. Lembar itulah yang
+dicentang pakai pena di lokasi lalu ditandatangani bersama customer.
 
-**Pemasangan**
+Daftarnya sengaja hanya ada di satu berkas: dua daftar yang sama-sama disunting
+akan berbeda isi tanpa ada yang menyadarinya, dan yang berbeda itu justru yang
+dibawa ke lapangan. PDF-nya pun tidak disunting sendiri — `buat-paket.bat`
+membuatnya ulang dari berkas `.md` setiap kali paket disusun, dan
+`cetak-ceklist.bat` melakukan hal yang sama bila lembarnya perlu dicetak di
+luar itu.
 
-- [ ] XAMPP terpasang di `C:\xampp`
-- [ ] Langkah 0 mencetak "Pustaka dan tampilan sudah ikut tersalin"
-- [ ] `.env` berisi nama perusahaan customer, `APP_ENV=production`, dan
-      `APP_DEBUG=false`
-- [ ] Pemasangan selesai tanpa galat
-- [ ] Langkah 7 lolos — tidak ada transaksi contoh
-- [ ] Bila Langkah 5b dipakai: data master dari kantor sudah masuk, dan
-      penomoran dokumen mulai dari nomor 1
-- [ ] Pintasan **ERP Peak** dan **ERP Peak - Matikan** ada di desktop
-- [ ] Aplikasi terbuka di http://127.0.0.1:7001
+Isinya mengikuti panduan ini langkah demi langkah, ditambah yang tidak bisa
+dicentang begitu saja: angka hasil pemeriksaan Langkah 7 ditulis apa adanya
+dari layar, daftar akun yang dibuat beserta paraf penerima sandinya,
+penanggung jawab cadangan, dan IP server bila Langkah 13 dipakai.
 
-**Penyesuaian**
+Tiga butir di dalamnya berdiri sendiri sebagai pintu terakhir — selama salah
+satunya belum tercentang, sistem belum boleh dianggap diserahkan:
 
-- [ ] Profil perusahaan lengkap beserta logo dan rekening
-- [ ] Sandi Super Admin sudah diganti dan diserahkan langsung
-- [ ] Akun yang tidak dipakai sudah dihapus
-- [ ] Modul yang tidak dipakai sudah dimatikan
-- [ ] Nomor dokumen sesuai kebiasaan customer
-- [ ] Tarif pajak benar
-- [ ] Data master contoh sudah dihapus atau diganti
+- tidak ada akun yang masih bersandi `password` *(Langkah 9)*
+- basis data terbukti tanpa transaksi contoh *(Langkah 7)*
+- cadangan pertama sudah tersimpan di luar komputer itu *(Langkah 12)*
 
-**Serah terima**
-
-- [ ] Satu alur pembelian dicoba sampai selesai
-- [ ] Satu alur penjualan dicoba sampai selesai
-- [ ] Cara mencadangkan sudah dipraktikkan customer
-- [ ] Penanggung jawab cadangan ditunjuk namanya
-- [ ] Cadangan pertama tersimpan di luar komputer
-- [ ] Panduan diserahkan
-- [ ] Jalur dan jam dukungan disepakati
-
-Nama dan tanda tangan pemasang: ______________  Tanggal: __________
-
-Nama dan tanda tangan customer: ______________  Tanggal: __________
+Pekerjaan yang tersisa ditulis di bagian **Yang belum selesai** di ujung
+lembar, lengkap dengan nama dan tanggal. Pemasangan memang sering menyisakan
+sesuatu; yang berbahaya adalah yang tertinggal tanpa ada yang tahu. Tanda
+tangan di bawahnya membuat sisa itu menjadi kesepakatan, bukan kelupaan.
 
 ---
 
