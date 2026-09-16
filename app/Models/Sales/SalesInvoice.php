@@ -36,6 +36,7 @@ class SalesInvoice extends Model
 
     protected $fillable = [
         'invoice_no', 'invoice_type', 'wht_rate', 'wht_amount', 'date', 'due_date', 'partner_id', 'sales_order_id',
+        'customer_po_no',
         'subtotal', 'dpp_other_amount', 'discount_amount', 'shipping_cost', 'tax_amount', 'total',
         'paid_amount', 'credit_amount', 'status', 'notes', 'terms', 'created_by', 'posted_at',
     ];
@@ -186,7 +187,11 @@ class SalesInvoice extends Model
     public function scopeFilter(Builder $query, array $f): Builder
     {
         return $query
-            ->when($f['q'] ?? null, fn ($q, $v) => $q->where('invoice_no', 'like', "%{$v}%"))
+            // Nomor PO customer ikut dicari: bagian hutang mereka mencocokkan
+            // tagihan terhadap nomor PO-nya, bukan terhadap nomor faktur kita.
+            ->when($f['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w
+                ->where('invoice_no', 'like', "%{$v}%")
+                ->orWhere('customer_po_no', 'like', "%{$v}%")))
             ->when($f['partner_id'] ?? null, fn ($q, $v) => $q->where('partner_id', $v))
             ->when(($f['overdue'] ?? null) === '1', fn ($q) => $q->unpaid()->whereDate('due_date', '<', now()))
             ->status($f['status'] ?? null)

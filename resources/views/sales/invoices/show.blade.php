@@ -93,6 +93,8 @@
                         <dt class="col-5 text-secondary">Dibayar Customer</dt>
                         <dd class="col-7 fw-bold">{{ rupiah($document->amountDue()) }}</dd>
                     @endif
+                    <dt class="col-5 text-secondary">No. PO Pelanggan</dt>
+                    <dd class="col-7">{{ $document->customer_po_no ?? '—' }}</dd>
                     <dt class="col-5 text-secondary">Pelanggan</dt>
                     <dd class="col-7"><a href="{{ route('partners.show', $document->partner_id) }}">{{ $document->customer?->name }}</a></dd>
                     <dt class="col-5 text-secondary">Pesanan</dt>

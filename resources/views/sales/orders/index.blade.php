@@ -32,7 +32,7 @@
                 <table class="table table-vcenter card-table">
                     <thead>
                     <tr>
-                        <th>No. SO</th><th>Tanggal</th><th>Pelanggan</th><th>Gudang</th>
+                        <th>No. SO</th><th>Tanggal</th><th>No. PO Pelanggan</th><th>Pelanggan</th><th>Gudang</th>
                         <th class="text-num">Total</th><th>Status</th><th class="w-1"></th>
                     </tr>
                     </thead>
@@ -41,6 +41,7 @@
                         <tr>
                             <td><a href="{{ route('sales-orders.show', $document) }}" class="fw-bold">{{ $document->so_no }}</a></td>
                             <td>{{ fdate($document->date) }}</td>
+                            <td class="text-secondary">{{ $document->customer_po_no ?? '—' }}</td>
                             <td>{{ $document->customer?->name }}</td>
                             <td class="text-secondary">{{ $document->warehouse?->name }}</td>
                             <td class="text-num">{{ rupiah($document->total) }}</td>

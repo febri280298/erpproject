@@ -19,7 +19,7 @@ class DeliveryOrder extends Model
     use HasDocumentStatus, LogsActivity;
 
     protected $fillable = [
-        'do_no', 'date', 'sales_order_id', 'sales_invoice_id', 'partner_id', 'warehouse_id',
+        'do_no', 'date', 'sales_order_id', 'sales_invoice_id', 'customer_po_no', 'partner_id', 'warehouse_id',
         'driver_name', 'vehicle_no', 'shipping_address', 'status', 'notes',
         'created_by', 'posted_at',
     ];
@@ -104,7 +104,11 @@ class DeliveryOrder extends Model
     public function scopeFilter(Builder $query, array $f): Builder
     {
         return $query
-            ->when($f['q'] ?? null, fn ($q, $v) => $q->where('do_no', 'like', "%{$v}%"))
+            // Nomor PO customer ikut dicari: bagian penerimaan mereka menyebut
+            // dokumen dengan nomor PO-nya, bukan dengan nomor surat jalan kita.
+            ->when($f['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w
+                ->where('do_no', 'like', "%{$v}%")
+                ->orWhere('customer_po_no', 'like', "%{$v}%")))
             ->when($f['partner_id'] ?? null, fn ($q, $v) => $q->where('partner_id', $v))
             ->when($f['warehouse_id'] ?? null, fn ($q, $v) => $q->where('warehouse_id', $v))
             ->status($f['status'] ?? null)

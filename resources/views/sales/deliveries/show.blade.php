@@ -78,6 +78,8 @@
                             <a href="{{ route('sales-orders.show', $document->sales_order_id) }}">{{ $document->salesOrder->so_no }}</a>
                         @else — @endif
                     </dd>
+                    <dt class="col-5 text-secondary">No. PO Pelanggan</dt>
+                    <dd class="col-7">{{ $document->customer_po_no ?? '—' }}</dd>
                     <dt class="col-5 text-secondary">Pelanggan</dt>
                     <dd class="col-7">{{ $document->customer?->name }}</dd>
                     <dt class="col-5 text-secondary">Gudang</dt>

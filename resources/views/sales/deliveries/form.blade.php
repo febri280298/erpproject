@@ -65,8 +65,12 @@
                         <label class="form-label">Gudang</label>
                         <input type="text" class="form-control" value="{{ $order->warehouse?->name }}" disabled>
                     </div>
-                    <x-form.textarea name="shipping_address" label="Alamat Pengiriman"
-                                     :value="$order->customer?->address" rows="2" />
+                    <x-form.input name="customer_po_no" label="No. PO Pelanggan" col="col-md-4"
+                                  :value="$order->customer_po_no"
+                                  help="Terisi dari pesanan penjualan. Nomor ini tercetak di surat jalan supaya bagian penerimaan customer bisa mencocokkannya dengan PO mereka sendiri." />
+                    <x-form.textarea name="shipping_address" label="Tujuan Pengiriman"
+                                     :value="$order->customer?->address" rows="2"
+                                     help="Terisi dari alamat customer. Ubah bila barang dikirim ke tempat lain — lokasi proyek, gudang cabang, atau alamat titip. Alamat inilah yang tercetak di surat jalan." />
                 </div>
             </x-card>
 
@@ -158,7 +162,10 @@
                     <x-form.input name="date" label="Tanggal Kirim" type="date" :value="now()->toDateString()" required col="col-md-4" />
                     <x-form.input name="driver_name" label="Nama Pengemudi" col="col-md-4" />
                     <x-form.input name="vehicle_no" label="No. Kendaraan" col="col-md-4" />
-                    <x-form.textarea name="shipping_address" label="Alamat Pengiriman" rows="2" />
+                    <x-form.input name="customer_po_no" label="No. PO Pelanggan" col="col-md-4"
+                                  help="Nomor PO dari customer, bila ada. Tercetak di surat jalan supaya bagian penerimaan mereka bisa mencocokkannya." />
+                    <x-form.textarea name="shipping_address" label="Tujuan Pengiriman" rows="2"
+                                     help="Terisi sendiri dari alamat customer begitu customernya dipilih. Ubah bila barang dikirim ke tempat lain — lokasi proyek, gudang cabang, atau alamat titip. Alamat inilah yang tercetak di surat jalan." />
                 </div>
             </x-card>
 
@@ -235,5 +242,53 @@
                 </x-slot:footer>
             </x-card>
         </form>
+
+        @push('scripts')
+            <script>
+                /**
+                 * Tujuan pengiriman terisi sendiri dari alamat customer.
+                 *
+                 * Jalur dari pesanan penjualan sudah terisi dari sisi server,
+                 * tetapi di jalur manual customernya baru dipilih di halaman ini
+                 * — jadi alamatnya dibawa serta sebagai peta dan dipasang saat
+                 * pilihan berubah.
+                 *
+                 * Yang sudah diketik orang tidak pernah ditimpa. Alamat kiriman
+                 * sering memang bukan alamat customer (lokasi proyek, gudang
+                 * cabang, alamat titip), dan menghapus ketikan orang karena ia
+                 * mengganti customer adalah kehilangan yang tidak terlihat
+                 * sampai surat jalannya tercetak salah.
+                 *
+                 * Peristiwa 'change' cukup: TomSelect melepasnya pada <select>
+                 * aslinya, jadi pilihan lewat kotak cari pun ikut terbaca.
+                 */
+                (function () {
+                    const alamat = @json($customerAddresses);
+                    const pilihan = document.getElementById('partner_id');
+                    const tujuan = document.getElementById('shipping_address');
+
+                    if (! pilihan || ! tujuan) {
+                        return;
+                    }
+
+                    pilihan.addEventListener('change', function () {
+                        const diisiOrang = tujuan.value.trim() !== ''
+                            && tujuan.dataset.dariCustomer !== '1';
+
+                        if (diisiOrang) {
+                            return;
+                        }
+
+                        tujuan.value = alamat[this.value] ?? '';
+                        tujuan.dataset.dariCustomer = '1';
+                    });
+
+                    // Sekali orang menyuntingnya sendiri, isinya jadi miliknya.
+                    tujuan.addEventListener('input', function () {
+                        delete tujuan.dataset.dariCustomer;
+                    });
+                })();
+            </script>
+        @endpush
     @endif
 @endsection

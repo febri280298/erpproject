@@ -19,7 +19,7 @@
 @section('content')
     <x-card flush>
         @include('partials.doc-filters', [
-            'searchPlaceholder' => 'No. faktur…',
+            'searchPlaceholder' => 'No. faktur / PO pelanggan…',
             'statuses' => ['draft' => 'Draft', 'posted' => 'Diposting', 'partial' => 'Sebagian Dibayar', 'paid' => 'Lunas', 'cancelled' => 'Dibatalkan'],
             'selects' => [['name' => 'partner_id', 'label' => 'Pelanggan', 'options' => $customers]],
         ])
@@ -34,7 +34,7 @@
                 <table class="table table-vcenter card-table">
                     <thead>
                     <tr>
-                        <th>No. Faktur</th><th>Tanggal</th><th>Jatuh Tempo</th><th>Pelanggan</th>
+                        <th>No. Faktur</th><th>Tanggal</th><th>Jatuh Tempo</th><th>No. PO Pelanggan</th><th>Pelanggan</th>
                         <th class="text-num">Total</th><th class="text-num">Sisa</th><th>Status</th><th class="w-1"></th>
                     </tr>
                     </thead>
@@ -47,6 +47,7 @@
                                 {{ fdate($document->due_date) }}
                                 @if($document->isOverdue())<div class="small">{{ $document->daysOverdue() }} hari lewat</div>@endif
                             </td>
+                            <td class="text-secondary">{{ $document->customer_po_no ?? '—' }}</td>
                             <td>{{ $document->customer?->name }}</td>
                             <td class="text-num">{{ rupiah($document->total) }}</td>
                             <td class="text-num {{ $document->outstandingAmount() > 0 ? 'text-danger' : 'text-success' }}">

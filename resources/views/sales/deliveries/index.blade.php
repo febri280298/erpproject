@@ -14,7 +14,7 @@
 @section('content')
     <x-card flush>
         @include('partials.doc-filters', [
-            'searchPlaceholder' => 'Nomor surat jalan…',
+            'searchPlaceholder' => 'No. SJ / PO pelanggan…',
             'statuses' => ['draft' => 'Draft', 'posted' => 'Diposting', 'cancelled' => 'Dibatalkan'],
             'selects' => [
                 ['name' => 'partner_id', 'label' => 'Pelanggan', 'options' => $customers],
@@ -32,7 +32,7 @@
                 <table class="table table-vcenter card-table">
                     <thead>
                     <tr>
-                        <th>No. SJ</th><th>Tanggal</th><th>No. SO</th><th>Pelanggan</th>
+                        <th>No. SJ</th><th>Tanggal</th><th>No. SO</th><th>No. PO Pelanggan</th><th>Pelanggan</th>
                         <th>Gudang</th><th>Kendaraan</th><th>Status</th><th class="w-1"></th>
                     </tr>
                     </thead>
@@ -46,6 +46,7 @@
                                     <a href="{{ route('sales-orders.show', $document->sales_order_id) }}">{{ $document->salesOrder->so_no }}</a>
                                 @else — @endif
                             </td>
+                            <td class="text-secondary">{{ $document->customer_po_no ?? '—' }}</td>
                             <td>{{ $document->customer?->name }}</td>
                             <td class="text-secondary">{{ $document->warehouse?->name }}</td>
                             <td class="text-secondary">{{ $document->vehicle_no ?? '—' }}</td>

@@ -64,7 +64,12 @@
             <x-form.select name="sales_order_id" label="Pesanan Penjualan" col="col-md-6"
                            :value="$document->sales_order_id ?? ($sourceOrder->id ?? ($lockedSalesOrderId ?? null))"
                            :options="$openOrders->mapWithKeys(fn($o) => [$o->id => $o->so_no.' — '.$o->customer?->name])"
-                           placeholder="— Tanpa pesanan —" />
+                           placeholder="— Tanpa pesanan —"
+                           help="Hanya penautan rujukan; item dan jumlah tidak ditarik dari sini. Untuk menagih barang yang sudah dikirim, pakai Dari Surat Jalan." />
+            <x-form.input name="customer_po_no" label="No. PO Pelanggan" col="col-md-6"
+                          :value="$document->customer_po_no ?? ($sourceOrder->customer_po_no ?? ($lockedCustomerPoNo ?? null))"
+                          help="Terisi dari pesanan penjualan atau surat jalannya. Dibiarkan kosong bila faktur ini menagih beberapa surat jalan dengan nomor PO berbeda." />
+
             <div class="col-md-6">
                 <label class="form-label">Nomor Dokumen</label>
                 <input type="text" class="form-control" value="{{ $nextNumber }}" disabled>

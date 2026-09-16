@@ -55,6 +55,13 @@ class DeliveryOrderController extends Controller
 
         $manual = $order === null && $request->query('mode') === 'manual';
 
+        // Diambil sekali lalu dipecah dua: daftar pilihan dan peta alamatnya.
+        // Jalur manual mengisi tujuan pengiriman sendiri begitu customernya
+        // dipilih, dan itu butuh alamatnya sudah ada di halaman — memuatnya
+        // lewat permintaan tersendiri hanya menambah tunggu untuk data yang
+        // sudah ada di tangan.
+        $customerList = Partner::customers()->active()->orderBy('name')->get(['id', 'name', 'address']);
+
         return view('sales.deliveries.form', [
             'order' => $order,
             'manual' => $manual,
@@ -68,7 +75,8 @@ class DeliveryOrderController extends Controller
                 ->with('customer:id,name')
                 ->latest('date')
                 ->get(),
-            'customers' => Partner::customers()->active()->orderBy('name')->pluck('name', 'id'),
+            'customers' => $customerList->pluck('name', 'id'),
+            'customerAddresses' => $customerList->pluck('address', 'id'),
             'warehouses' => Warehouse::active()->orderBy('name')->pluck('name', 'id'),
             'defaultWarehouse' => Warehouse::defaultId(),
             'products' => Product::optionsPayload(),
@@ -105,6 +113,7 @@ class DeliveryOrderController extends Controller
             'date' => ['required', 'date'],
             'driver_name' => ['nullable', 'string', 'max:100'],
             'vehicle_no' => ['nullable', 'string', 'max:30'],
+            'customer_po_no' => ['nullable', 'string', 'max:60'],
             'shipping_address' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
@@ -138,6 +147,10 @@ class DeliveryOrderController extends Controller
                     'warehouse_id' => $order?->warehouse_id ?? $data['warehouse_id'],
                     'driver_name' => $data['driver_name'] ?? null,
                     'vehicle_no' => $data['vehicle_no'] ?? null,
+                    // Disalin dari pesanan bila tidak diisi sendiri, lalu tetap
+                    // di sini: nomor yang sudah tercetak di surat jalan tidak
+                    // boleh berubah karena SO-nya disunting belakangan.
+                    'customer_po_no' => ($data['customer_po_no'] ?? null) ?: $order?->customer_po_no,
                     'shipping_address' => ($data['shipping_address'] ?? null) ?: $customer?->address,
                     'status' => 'draft',
                     'notes' => $data['notes'] ?? null,

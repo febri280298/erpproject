@@ -56,6 +56,7 @@ class SalesInvoiceController extends LineItemDocumentController
             'due_date' => ['nullable', 'date', 'after_or_equal:date'],
             'partner_id' => ['required', 'exists:partners,id'],
             'sales_order_id' => ['nullable', 'exists:sales_orders,id'],
+            'customer_po_no' => ['nullable', 'string', 'max:60'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'terms' => ['nullable', 'string', 'max:2000'],
             'delivery_order_ids' => ['nullable', 'array'],
@@ -163,6 +164,26 @@ class SalesInvoiceController extends LineItemDocumentController
      * Langkah 1 — pilih customer, lalu centang surat jalan yang akan ditagih.
      * Hanya menampilkan pengiriman yang sudah diposting dan belum ditagih.
      */
+    /**
+     * Langkah pertama: pilih sumbernya lebih dulu.
+     *
+     * Faktur menagih barang yang SUDAH DIKIRIM, jadi sumber yang benar adalah
+     * surat jalan — bukan pesanan penjualan. Sebelumnya form ini langsung
+     * terbuka kosong dengan isian "Pesanan Penjualan" di atasnya, dan isian itu
+     * hanya tautan rujukan: ia tidak pernah menarik item, jumlah, maupun nomor
+     * PO. Bentuknya mengundang orang menagih dari pesanan, yang berarti menagih
+     * barang yang mungkin belum keluar gudang.
+     *
+     * Jalur manual tetap ada untuk tagihan yang memang tidak punya surat jalan
+     * — jasa, ongkos pasang, penyesuaian — dan dicapai lewat ?mode=manual.
+     */
+    public function create(Request $request): View
+    {
+        return $request->query('mode') === 'manual'
+            ? parent::create($request)
+            : view("{$this->viewPath}.pilih-sumber");
+    }
+
     public function selectDeliveries(Request $request): View
     {
         $partnerId = $request->query('partner_id');
@@ -242,12 +263,19 @@ class SalesInvoiceController extends LineItemDocumentController
 
         // Nomor SO diikutkan hanya bila seluruh pengiriman berasal dari satu SO.
         $orderIds = $deliveries->pluck('sales_order_id')->filter()->unique();
+
+        // Begitu pula nomor PO customer. Satu faktur boleh menagih beberapa
+        // surat jalan sekaligus, dan bila PO-nya berbeda-beda tidak ada satu
+        // nomor yang benar untuk dicetak — lebih baik dikosongkan dan diisi
+        // sendiri daripada menampilkan salah satu yang kebetulan terpilih.
+        $poNumbers = $deliveries->pluck('customer_po_no')->filter()->unique();
         $days = (int) ($customer?->paymentTerm?->days ?? 0);
 
         return view("{$this->viewPath}.form", array_merge([
             'document' => null,
             'sourceDeliveries' => $deliveries,
             'lockedSalesOrderId' => $orderIds->count() === 1 ? $orderIds->first() : null,
+            'lockedCustomerPoNo' => $poNumbers->count() === 1 ? $poNumbers->first() : null,
             'products' => Product::optionsPayload(),
             'rows' => array_values($merged),
             'defaultDueDate' => CarbonImmutable::now()->addDays($days)->toDateString(),

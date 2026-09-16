@@ -31,6 +31,11 @@ return [
             'isi' => 'Klik isian pilihan mana pun — produk, customer, akun, gudang — lalu ketik sebagian namanya untuk menyaring daftar. Nama dan kode dicari sekaligus, jadi "KRT-002" maupun "rubber" sama-sama menemukan barangnya. Tekan Enter untuk memilih yang teratas.',
         ],
         [
+            'ikon' => 'ti-columns',
+            'judul' => 'Kolom tabel bisa dipilih sendiri',
+            'isi' => 'Tombol <strong>Kolom</strong> di ujung kanan baris penyaring membuka daftar kolom tabel itu. Lepas centangnya untuk menyembunyikan yang tidak dipakai — bagian gudang jarang memerlukan kolom harga, bagian penjualan jarang memerlukan kolom stok — sehingga tabel yang tadinya harus digulir mendatar jadi muat sekali lihat. Pilihannya disimpan di peramban masing-masing dan diingat saat halaman itu dibuka lagi, jadi tiap orang bisa mengatur tampilannya sendiri tanpa memengaruhi orang lain. Tombol <strong>Tampilkan semua</strong> di bawah daftar mengembalikan seluruh kolom.',
+        ],
+        [
             'ikon' => 'ti-dots-vertical',
             'judul' => 'Tombol Aksi di setiap baris tabel',
             'isi' => 'Detail, Ubah, dan Hapus tidak ditaruh sebagai kolom sendiri melainkan di tombol <strong>Aksi</strong> pada ujung kanan tiap baris, supaya tabel tetap terbaca. Isi menunya berbeda-beda mengikuti wewenang peran yang sedang masuk.',
@@ -187,7 +192,7 @@ return [
             'langkah' => [
                 '<span class="path">Penjualan → Penawaran (Quotation) → Buat</span>.',
                 'Pilih customer dan masa berlaku, lalu isi barisnya. Harga mengikuti tingkat harga customer.',
-                'Simpan, lalu cetak atau ekspor ke <strong>Excel</strong> untuk dikirim ke customer.',
+                'Simpan, lalu kirim ke customer lewat salah satu dari tiga tombol di kanan atas: <strong>Cetak</strong> untuk dicetak langsung, <strong>PDF</strong> untuk berkas yang tinggal dilampirkan ke email atau WhatsApp, dan <strong>Excel</strong> bila customer ingin mengutak-atik angkanya sendiri.',
                 'Bila customer setuju, ubah status menjadi <strong>Diterima</strong>. Tombol <strong>Buat Pesanan Penjualan</strong> muncul dan seluruh barisnya tersalin.',
             ],
             'catat' => 'Menu ini hanya terlihat oleh Super Admin, Penjualan, dan Manajer. Bila tidak muncul, periksa peran akun yang dipakai atau modul Penawaran di Pengaturan → Modul.',
@@ -204,10 +209,12 @@ return [
                 '<span class="path">Penjualan → Pesanan Penjualan (SO) → Buat</span> — pilih sumbernya lebih dulu.',
                 '<strong>Dari penawaran yang sudah deal:</strong> pilih penawarannya, lalu produk, jumlah, harga, dan diskonnya ditarik otomatis. Hanya penawaran berstatus <strong>Diterima</strong> yang muncul, dan yang belum pernah dijadikan pesanan — satu penawaran hanya boleh menjadi satu pesanan. Harga yang sudah disepakati tidak perlu diketik ulang, jadi tidak ada peluang salah ketik pada angka yang sudah final.',
                 '<strong>Tanpa penawaran:</strong> untuk order yang langsung masuk. Pilih customer — harga seluruh baris langsung menyesuaikan tingkat harganya, dan sumber harga tertulis di atas tabel.',
+                'Isi <strong>No. PO Pelanggan</strong> bila customer mengirim nomor PO mereka sendiri. Nomor itu ikut turun ke surat jalan dan faktur, lalu tercetak di keduanya — bagian penerimaan customer mencocokkan dokumen terhadap PO mereka, bukan terhadap nomor SO kita.',
                 'Simpan sebagai Draft, lalu minta <strong>Manajer</strong> menekan <strong>Konfirmasi</strong>.',
             ],
             'periksa' => [
                 'Pesanan yang dibuat dari penawaran menyebut nomor penawarannya di halaman detail, dan bisa diklik untuk membukanya.',
+                'No. PO Pelanggan muncul kembali dengan sendirinya saat surat jalan dan faktur dibuat dari pesanan ini.',
                 'Harga jual berubah bila customer diganti dengan tingkat harga berbeda.',
                 'Staf penjualan tidak dapat mengonfirmasi pesanannya sendiri.',
             ],
@@ -219,6 +226,7 @@ return [
             'langkah' => [
                 '<span class="path">Penjualan → Surat Jalan (DO) → Buat</span> — pilih <strong>Dari Pesanan Penjualan</strong>, lalu pilih SO tadi.',
                 'Perhatikan kolom <strong>Stok</strong>: isinya sisa barang di gudang asal. Angka yang <span class="text-danger">merah</span> berarti stoknya kurang dari yang akan dikirim, beserta selisihnya. Itu <strong>peringatan, bukan penghalang</strong> — kirimannya tetap bisa diposting.',
+                'Periksa <strong>Tujuan Pengiriman</strong>. Isinya terisi sendiri dari alamat customer, dan boleh diubah bila barangnya dikirim ke tempat lain — lokasi proyek, gudang cabang, atau alamat titip. Alamat inilah yang tercetak di surat jalan dan dibawa pengemudi, bukan alamat customer yang terdaftar.',
                 'Isi jumlah kirim, nama pengemudi, dan nomor kendaraan. Simpan, lalu <strong>Posting</strong>.',
                 'Cetak surat jalannya untuk dibawa pengantar.',
             ],
@@ -233,7 +241,9 @@ return [
             'modul' => 'sales',
             'judul' => 'Tagih customer lalu terima pembayaran',
             'langkah' => [
-                '<span class="path">Penjualan → Faktur Penjualan (Invoice)</span>, tekan <strong>Dari Surat Jalan</strong>. Pilih customer, centang surat jalan yang ditagih — boleh beberapa sekaligus.',
+                '<span class="path">Penjualan → Faktur Penjualan (Invoice) → Buat Faktur</span> — pilih sumbernya lebih dulu.',
+                '<strong>Dari Surat Jalan:</strong> jalur yang biasa dipakai. Pilih customer, centang surat jalan yang ditagih — boleh beberapa sekaligus. Item, jumlah, harga, dan <strong>No. PO Pelanggan</strong> ditarik otomatis dari surat jalannya. Faktur menagih barang yang <em>sudah benar-benar dikirim</em>, bukan yang dipesan; surat jalan yang pernah ditagih tidak muncul lagi sehingga tidak ada barang yang tertagih dua kali.',
+                '<strong>Tanpa Surat Jalan:</strong> untuk tagihan yang memang tidak melewati pengiriman — jasa, ongkos pasang, atau penyesuaian. Produk dan jumlahnya diisi sendiri dan tidak dicocokkan dengan dokumen mana pun, jadi periksa lagi sebelum diposting.',
                 'Pilih <strong>Tipe Faktur</strong>. Untuk tipe Jasa, isi tarif PPh 23.',
                 'Simpan, lalu <strong>Posting</strong>. Cetak untuk dikirim ke customer.',
                 '<span class="path">Penjualan → Pembayaran dari Customer → Buat</span> — pilih akun kas/bank, alokasikan ke faktur, lalu <strong>Posting</strong>.',

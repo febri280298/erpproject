@@ -19,6 +19,7 @@
             'Tanggal' => fdate($document->date),
             'Jatuh Tempo' => fdate($document->due_date),
             'No. SO' => $document->salesOrder?->so_no ?? '—',
+            'No. PO Pelanggan' => $document->customer_po_no ?? '—',
         ],
         'signatures' => ['Hormat kami'],
         'showBank' => true,
