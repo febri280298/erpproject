@@ -8,6 +8,16 @@
         <i class="ti ti-printer me-1"></i> Cetak
     </a>
 
+    {{-- Nomor masih boleh dibetulkan setelah diposting, selama belum ada
+         pembayaran — syaratnya berbeda dari tombol Ubah di sebelahnya. --}}
+    @can('sales-invoice.edit')
+        @if($document->canRenumber())
+            <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#ubah-nomor-modal">
+                <i class="ti ti-hash me-1"></i> Ubah Nomor
+            </button>
+        @endif
+    @endcan
+
     @if($document->isDraft())
         @can('sales-invoice.edit')
             <a href="{{ route('sales-invoices.edit', $document) }}" class="btn"><i class="ti ti-edit me-1"></i> Ubah</a>
@@ -123,3 +133,46 @@
         </div>
     </div>
 @endsection
+
+@can('sales-invoice.edit')
+    @if($document->canRenumber())
+        @push('modals')
+            <div class="modal fade" id="ubah-nomor-modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <form class="modal-content" method="POST" action="{{ route('sales-invoices.renumber', $document) }}">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">Ubah Nomor Faktur</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <label class="form-label required" for="invoice_no">Nomor faktur</label>
+                            <input type="text" name="invoice_no" id="invoice_no" maxlength="40" required
+                                   class="form-control @error('invoice_no') is-invalid @enderror"
+                                   value="{{ old('invoice_no', $document->invoice_no) }}">
+                            @error('invoice_no')<div class="invalid-feedback">{{ $message }}</div>@enderror
+
+                            <small class="form-hint mt-2 d-block">
+                                Nomor harus unik. Rujukan di jurnal ikut disesuaikan, jadi buku besar
+                                tetap menyebut nomor yang sama dengan fakturnya.
+                            </small>
+
+                            @if(! $document->isDraft())
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    Faktur ini <strong>sudah diposting</strong>. Bila lembarnya sudah
+                                    terkirim ke customer, kirimkan gantinya setelah nomor diubah —
+                                    kalau tidak, dokumen yang mereka pegang menyebut nomor yang
+                                    sudah tidak ada.
+                                </div>
+                            @endif
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-link" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan Nomor</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endpush
+    @endif
+@endcan

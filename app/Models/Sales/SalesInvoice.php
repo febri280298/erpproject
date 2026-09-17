@@ -151,6 +151,23 @@ class SalesInvoice extends Model
     }
 
     /**
+     * Nomor faktur masih boleh diganti?
+     *
+     * Batasnya pembayaran, bukan status posting. Faktur yang sudah diposting
+     * pun nomornya masih boleh dibetulkan — customer kerap baru meminta format
+     * nomor tertentu setelah fakturnya diterima, dan menerbitkan faktur
+     * pengganti hanya demi itu membuat pembukuan penuh dokumen batal.
+     *
+     * Begitu ada pembayaran yang dicatat, nomornya mengunci: bukti transfer,
+     * rekening koran, dan pembukuan customer sudah menyebut nomor itu, dan
+     * mengubahnya berarti memutus jejak yang sudah dipegang dua belah pihak.
+     */
+    public function canRenumber(): bool
+    {
+        return $this->status !== 'cancelled' && $this->payments()->doesntExist();
+    }
+
+    /**
      * Jumlah yang benar-benar akan diterima: total faktur dikurangi PPh 23
      * yang dipotong dan disetorkan sendiri oleh customer.
      */

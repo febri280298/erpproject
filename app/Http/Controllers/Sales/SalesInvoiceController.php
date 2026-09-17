@@ -17,6 +17,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use RuntimeException;
@@ -329,6 +330,49 @@ class SalesInvoiceController extends LineItemDocumentController
         }
 
         return back()->with('success', "Faktur {$salesInvoice->invoice_no} diposting ke buku besar.");
+    }
+
+    /**
+     * Ganti nomor faktur.
+     *
+     * Berdiri sendiri, bukan bagian dari form Ubah, karena syaratnya berbeda:
+     * form Ubah hanya terbuka selagi draft, sedangkan nomor masih boleh
+     * dibetulkan setelah diposting — selama belum ada pembayaran.
+     *
+     * Rujukan di jurnal ikut disesuaikan. Tautannya sendiri polimorfik lewat
+     * source_id sehingga tidak pernah putus, tetapi kolom reference menyimpan
+     * nomornya sebagai teks: dibiarkan, buku besar akan menyebut nomor lama
+     * sementara fakturnya menyebut nomor baru, dan rekonsiliasi jadi menuduh
+     * ada dokumen yang hilang.
+     */
+    public function renumber(Request $request, SalesInvoice $salesInvoice): RedirectResponse
+    {
+        abort_unless(
+            $salesInvoice->canRenumber(),
+            403,
+            'Nomor faktur yang sudah menerima pembayaran tidak dapat diubah.'
+        );
+
+        $data = $request->validate([
+            'invoice_no' => [
+                'required', 'string', 'max:40',
+                Rule::unique('sales_invoices', 'invoice_no')->ignore($salesInvoice->id),
+            ],
+        ], [], ['invoice_no' => 'nomor faktur']);
+
+        $lama = $salesInvoice->invoice_no;
+        $baru = trim($data['invoice_no']);
+
+        if ($baru === $lama) {
+            return back()->with('success', 'Nomor faktur tidak berubah.');
+        }
+
+        DB::transaction(function () use ($salesInvoice, $baru) {
+            $salesInvoice->forceFill(['invoice_no' => $baru])->save();
+            $salesInvoice->journals()->update(['reference' => $baru]);
+        });
+
+        return back()->with('success', "Nomor faktur diubah dari {$lama} menjadi {$baru}.");
     }
 
     public function cancel(SalesInvoice $salesInvoice): RedirectResponse

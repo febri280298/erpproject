@@ -273,6 +273,8 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('sales-invoices.post')->middleware('permission:sales-invoice.post');
         Route::post('sales-invoices/{salesInvoice}/cancel', [SalesInvoiceController::class, 'cancel'])
             ->name('sales-invoices.cancel')->middleware('permission:sales-invoice.post');
+        Route::post('sales-invoices/{salesInvoice}/renumber', [SalesInvoiceController::class, 'renumber'])
+            ->name('sales-invoices.renumber')->middleware('permission:sales-invoice.edit');
         Route::get('sales-invoices/{salesInvoice}/print', [SalesInvoiceController::class, 'print'])
             ->name('sales-invoices.print')->middleware('permission:sales-invoice.view');
 

@@ -246,6 +246,7 @@ return [
                 '<strong>Tanpa Surat Jalan:</strong> untuk tagihan yang memang tidak melewati pengiriman — jasa, ongkos pasang, atau penyesuaian. Produk dan jumlahnya diisi sendiri dan tidak dicocokkan dengan dokumen mana pun, jadi periksa lagi sebelum diposting.',
                 'Pilih <strong>Tipe Faktur</strong>. Untuk tipe Jasa, isi tarif PPh 23.',
                 'Simpan, lalu <strong>Posting</strong>. Cetak untuk dikirim ke customer.',
+                'Nomor faktur boleh diganti lewat tombol <strong>Ubah Nomor</strong> di halaman detailnya — berguna bila customer meminta format nomor tertentu. Masih bisa dilakukan meski fakturnya sudah diposting, dan rujukan di jurnal ikut disesuaikan sehingga buku besar tetap menyebut nomor yang sama.',
                 '<span class="path">Penjualan → Pembayaran dari Customer → Buat</span> — pilih akun kas/bank, alokasikan ke faktur, lalu <strong>Posting</strong>.',
             ],
             'tabel' => [
@@ -260,6 +261,7 @@ return [
                 'Faktur mencantumkan seluruh surat jalan yang ditagihnya.',
                 'Pada tipe Jasa muncul baris <strong>PPh 23</strong> dan <strong>Dibayar Customer</strong> yang lebih kecil dari total.',
                 'Surat jalan yang sudah ditagih hilang dari daftar pilihan — tidak bisa tertagih dua kali.',
+                'Tombol <strong>Ubah Nomor</strong> hilang begitu pembayaran pertama dicatat. Sejak saat itu nomornya sudah disebut di bukti transfer dan pembukuan customer, jadi mengubahnya berarti memutus jejak yang dipegang dua belah pihak.',
             ],
         ],
         [
