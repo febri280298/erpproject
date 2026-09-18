@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\NumberSequence;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 /**
  * Generates gap-free, per-module document numbers such as `PO/2026/08/0001`.
@@ -33,6 +34,45 @@ class DocumentNumberService
      * akhirnya tersimpan, dan itu terbaca seperti sistem yang salah hitung.
      */
     private const PLACEHOLDER = '(mitra)';
+
+    /**
+     * Tabel dan kolom nomor tiap modul, dipakai memeriksa apakah sebuah nomor
+     * sudah terpakai sebelum diberikan.
+     *
+     * Pencacah saja tidak cukup sejak nomor dokumen boleh diketik manual —
+     * lihat catatan pada next(). Modul yang tidak terdaftar di sini tidak
+     * diperiksa, dan itu aman: perilakunya kembali seperti semula.
+     */
+    private const TABLES = [
+        'purchase_requisition' => ['purchase_requisitions', 'pr_no'],
+        'purchase_order' => ['purchase_orders', 'po_no'],
+        'goods_receipt' => ['goods_receipts', 'grn_no'],
+        'purchase_invoice' => ['purchase_invoices', 'invoice_no'],
+        'supplier_payment' => ['supplier_payments', 'payment_no'],
+        'quotation' => ['quotations', 'quotation_no'],
+        'sales_order' => ['sales_orders', 'so_no'],
+        'delivery_order' => ['delivery_orders', 'do_no'],
+        'sales_invoice' => ['sales_invoices', 'invoice_no'],
+        'customer_payment' => ['customer_payments', 'payment_no'],
+        'sales_return' => ['sales_returns', 'return_no'],
+        'stock_transfer' => ['stock_transfers', 'transfer_no'],
+        'stock_adjustment' => ['stock_adjustments', 'adjustment_no'],
+        'journal' => ['journals', 'journal_no'],
+        'production_order' => ['production_orders', 'order_no'],
+        'bom' => ['boms', 'bom_no'],
+        'leave' => ['leaves', 'leave_no'],
+        'payroll' => ['payrolls', 'payroll_no'],
+    ];
+
+    /**
+     * Batas berapa nomor yang boleh dilewati sekali jalan.
+     *
+     * Ada supaya kesalahan data tidak berubah menjadi putaran tak berujung
+     * yang menggantung permintaan. Angkanya longgar: melewati seribu nomor
+     * berturut-turut berarti ada yang jauh lebih salah daripada sekadar
+     * bentrok satu-dua nomor.
+     */
+    private const MAKS_LEWATI = 1000;
 
     /** Modules seeded on install; `prefix` doubles as the fallback. */
     public const DEFAULTS = [
@@ -85,14 +125,57 @@ class DocumentNumberService
                 $sequence->period_month = $when->month;
             }
 
+            $segment = $this->segment($module, $initial);
+
+            /*
+             * Nomor yang sudah terpakai dilewati.
+             *
+             * Pencacah saja tidak lagi menjamin keunikan sejak nomor dokumen
+             * boleh diketik manual: seseorang menamai faktur SL/2026/09/0031,
+             * lalu berbulan-bulan kemudian pencacah sampai di 0031 dan
+             * pembuatan faktur gagal di constraint unik — jauh dari sebabnya,
+             * dan tidak ada petunjuk apa pun di layar selain "Server Error".
+             *
+             * Diperiksa terhadap nomor yang SUDAH TERBENTUK, bukan terhadap
+             * angka pencacahnya, karena bentuk akhirnya memuat prefix, periode,
+             * dan inisial mitra — dan itulah yang dijaga indeks uniknya.
+             */
             $number = $sequence->next_number;
+            $batas = $number + self::MAKS_LEWATI;
+            $formatted = $this->format($sequence, $when, $number, $segment);
+
+            while ($this->sudahTerpakai($module, $formatted)) {
+                if (++$number >= $batas) {
+                    throw new RuntimeException(
+                        "Tidak menemukan nomor kosong untuk {$module} setelah ".self::MAKS_LEWATI
+                        .' percobaan. Periksa penomoran dokumen di Pengaturan.'
+                    );
+                }
+
+                $formatted = $this->format($sequence, $when, $number, $segment);
+            }
+
             $sequence->next_number = $number + 1;
             $sequence->period_year = $when->year;
             $sequence->period_month = $when->month;
             $sequence->save();
 
-            return $this->format($sequence, $when, $number, $this->segment($module, $initial));
+            return $formatted;
         });
+    }
+
+    /** Nomor ini sudah dipakai dokumen lain? Modul tak terdaftar dianggap bebas. */
+    private function sudahTerpakai(string $module, string $number): bool
+    {
+        if (! isset(self::TABLES[$module])) {
+            return false;
+        }
+
+        [$tabel, $kolom] = self::TABLES[$module];
+
+        // Sengaja lewat query builder, bukan model: baris yang dihapus lunak
+        // tetap memegang nomornya di indeks unik, jadi harus ikut terhitung.
+        return DB::table($tabel)->where($kolom, $number)->exists();
     }
 
     private function periodChanged(NumberSequence $sequence, Carbon $when): bool
