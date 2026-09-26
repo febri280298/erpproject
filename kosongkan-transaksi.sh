@@ -26,11 +26,17 @@ DB="erppeak"
 # tabel baru itu diam-diam lolos dan menyisakan data uji coba. Kalau kelak ada
 # tabel master baru, ia akan muncul di bagian "AKAN DIKOSONGKAN" pada laporan —
 # jadi ketahuan sebelum dieksekusi, bukan sesudah.
+#
+# price_histories ikut dipertahankan meski terlihat seperti log transaksi:
+# isinya jejak penyetelan harga master, seluruh kunci asingnya menunjuk ke
+# products/partners/price_levels/users, dan kolom source hanya bernilai
+# manual|import|receipt — tidak ada rujukan ke dokumen yang akan dihapus,
+# jadi tidak ada baris menggantung setelah transaksinya hilang.
 MASTER="accounts bom_items boms departments employees leave_types migrations
 model_has_permissions model_has_roles number_sequences partners payment_terms
 permissions positions price_levels product_categories product_customer_prices
 product_prices product_supplier_prices products role_has_permissions roles
-settings taxes uoms users warehouses"
+price_histories settings taxes uoms users warehouses"
 
 JALANKAN=0
 [ "${1:-}" = "--jalankan" ] && JALANKAN=1
