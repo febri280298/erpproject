@@ -25,7 +25,10 @@
         :root {
             --sheet-width: 186mm;
             --tinta: #111827;          /* hitam lembut; hitam murni terlihat kasar di kertas */
-            --redup: #6b7280;          /* label dan keterangan */
+            /* Cukup gelap untuk tetap terbaca tegas setelah dicetak. Abu-abu
+               muda yang enak di layar keluar pucat di atas kertas, apalagi pada
+               printer laser yang menipiskan raster. */
+            --redup: #374151;          /* label dan keterangan */
             --garis: #d1d5db;          /* garis rambut antar baris */
             --bidang: #f3f4f6;         /* bidang kepala tabel & panel total */
         }
@@ -33,7 +36,38 @@
         body {
             background: #e9eaec;
             color: var(--tinta);
+            /*
+             * Font dinyatakan tegas, tidak diwariskan.
+             *
+             * layouts/pdf tidak memuat bundel Vite, jadi tanpa baris ini dompdf
+             * jatuh ke default_font bawaannya — 'serif', yang berarti Times.
+             * Unduhan PDF selama ini serif tipis sementara cetakan peramban
+             * sans-serif: dua rupa untuk dokumen yang sama.
+             *
+             * DejaVu Sans ikut dibawa dompdf, punya berkas tebal sungguhan, dan
+             * mencakup seluruh Unicode — nama produk berkarakter tak lazim tidak
+             * berubah jadi kotak. Peramban hampir tidak pernah memilikinya dan
+             * jatuh ke Arial, yang rupanya sangat dekat.
+             */
+            font-family: "DejaVu Sans", "Helvetica Neue", Arial, sans-serif;
             font-size: 9.5pt;
+            /*
+             * Bobot dasar tebal, bukan normal.
+             *
+             * Harus tepat 700, bukan 600. dompdf mencari berkas font untuk
+             * bobot yang diminta; DejaVu Sans hanya punya 400 dan 700, dan
+             * permintaan 600 tidak cocok dengan keduanya sehingga dompdf diam-
+             * diam jatuh ke font bawaannya — Times. Hasilnya dokumen bercampur
+             * dua rupa: judul sans, isi serif. Tidak ada peringatan apa pun,
+             * hanya terlihat setelah PDF-nya dibuka.
+             *
+             * Cetakan tipis juga sulit dibaca di gudang dan makin pudar setelah
+             * difotokopi, padahal surat jalan paling sering mengalami keduanya.
+             *
+             * Label dan cetakan halus dikembalikan ke 400 satu per satu di
+             * bawah, supaya hierarkinya tidak ikut rata.
+             */
+            font-weight: 700;
             line-height: 1.45;
             -webkit-font-smoothing: antialiased;
         }
@@ -110,8 +144,12 @@
             letter-spacing: -.01em;
         }
 
+        /* Alamat kop, kode produk, keterangan tanda tangan, dan catatan kaki
+           sengaja tetap normal: kalau semuanya tebal, tidak ada lagi yang
+           menonjol dan dokumennya terbaca seperti satu blok rata. */
         .company-detail {
             font-size: 8pt;
+            font-weight: 400;
             line-height: 1.4;
             color: var(--redup);
             margin-top: 1mm;
@@ -168,7 +206,7 @@
 
         .label {
             font-size: 7pt;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: .09em;
             text-transform: uppercase;
             color: var(--redup);
@@ -183,6 +221,7 @@
 
         .party-detail {
             font-size: 8.5pt;
+            font-weight: 400;
             line-height: 1.4;
             color: var(--redup);
             margin-top: 1mm;
@@ -209,13 +248,14 @@
         .meta .k {
             color: var(--redup);
             font-size: 8.5pt;
+            font-weight: 400;
             white-space: nowrap;
             padding-right: 3mm;
         }
 
         .meta .v {
             text-align: right;
-            font-weight: 600;
+            font-weight: 700;
             font-variant-numeric: tabular-nums;
         }
 
@@ -264,7 +304,7 @@
         }
 
         .items .item-name {
-            font-weight: 600;
+            font-weight: 700;
         }
 
         /* Abu-abu sendiri, bukan .text-secondary bawaan Tabler yang sedikit
@@ -275,6 +315,7 @@
 
         .items .item-sub {
             font-size: 6.8pt;
+            font-weight: 400;
             color: var(--redup);
             line-height: 1.3;
         }
@@ -293,6 +334,7 @@
 
         .totals .t-label {
             color: var(--redup);
+            font-weight: 400;
         }
 
         .totals .t-value {
@@ -398,6 +440,7 @@
             width: 80%;
             padding-top: 1mm;
             font-size: 7.5pt;
+            font-weight: 400;
             color: var(--redup);
         }
 
@@ -406,6 +449,7 @@
             padding-top: 2.5mm;
             border-top: .5pt solid var(--garis);
             font-size: 7.5pt;
+            font-weight: 400;
             color: var(--redup);
         }
 
