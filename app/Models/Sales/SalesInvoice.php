@@ -187,18 +187,21 @@ class SalesInvoice extends Model
         return round($this->amountDue() - (float) $this->paid_amount - (float) $this->credit_amount, 2);
     }
 
+    /** Status yang semestinya, dihitung tanpa menyimpan apa pun. */
+    public function statusPembayaran(): string
+    {
+        $dilunasi = round((float) $this->paid_amount + (float) $this->credit_amount, 2);
+
+        return $dilunasi <= 0 ? 'posted' : ($this->lunas() ? 'paid' : 'partial');
+    }
+
     public function syncPaymentStatus(): void
     {
         if (in_array($this->status, ['draft', 'cancelled'], true)) {
             return;
         }
 
-        $settled = round((float) $this->paid_amount + (float) $this->credit_amount, 2);
-        $total = round((float) $this->total, 2);
-
-        $this->forceFill([
-            'status' => $settled <= 0 ? 'posted' : ($settled >= $total ? 'paid' : 'partial'),
-        ])->saveQuietly();
+        $this->forceFill(['status' => $this->statusPembayaran()])->saveQuietly();
     }
 
     public function scopeFilter(Builder $query, array $f): Builder

@@ -99,6 +99,14 @@ class PurchaseInvoice extends Model
         return $this->isOverdue() ? (int) $this->due_date->diffInDays(now()) : 0;
     }
 
+    /** Status yang semestinya, dihitung tanpa menyimpan apa pun. */
+    public function statusPembayaran(): string
+    {
+        $dibayar = round((float) $this->paid_amount, 2);
+
+        return $dibayar <= 0 ? 'posted' : ($this->lunas() ? 'paid' : 'partial');
+    }
+
     /** Re-derives paid/partial/posted from the amount actually settled. */
     public function syncPaymentStatus(): void
     {
@@ -106,12 +114,7 @@ class PurchaseInvoice extends Model
             return;
         }
 
-        $paid = round((float) $this->paid_amount, 2);
-        $total = round((float) $this->total, 2);
-
-        $this->forceFill([
-            'status' => $paid <= 0 ? 'posted' : ($paid >= $total ? 'paid' : 'partial'),
-        ])->saveQuietly();
+        $this->forceFill(['status' => $this->statusPembayaran()])->saveQuietly();
     }
 
     public function scopeFilter(Builder $query, array $f): Builder

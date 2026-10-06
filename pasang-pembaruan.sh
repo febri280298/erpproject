@@ -79,6 +79,8 @@ grep -q "dejavu sans" config/dompdf.php           && echo "  config dompdf   : f
 grep -q "enable_font_subsetting' => true" config/dompdf.php && echo "  config dompdf   : subset font OK" || echo "  config dompdf   : subset GAGAL"
 grep -q "font-weight: 700" resources/views/partials/print-css.blade.php && echo "  gaya cetak      : bobot 700 OK" || echo "  gaya cetak      : GAGAL"
 grep -q "sudahTerpakai" app/Services/DocumentNumberService.php && echo "  penomoran       : lewati nomor terpakai OK" || echo "  penomoran       : GAGAL"
+grep -q "function lunas" app/Models/Concerns/CalculatesTotals.php && echo "  status faktur   : sisa sen dihitung lunas OK" || echo "  status faktur   : GAGAL"
+php artisan list 2>/dev/null | grep -q "faktur:sinkron-status" && echo "  perintah        : faktur:sinkron-status OK" || echo "  perintah        : GAGAL"
 echo -n "  situs           : "
 curl -s -o /dev/null -w "%{http_code}\n" https://erp.pum.lokastudio.shop/login
 echo

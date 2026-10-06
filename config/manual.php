@@ -180,7 +180,7 @@ return [
             ],
             'periksa' => [
                 'Di halaman faktur muncul panel <strong>Jurnal Terkait</strong>.',
-                'Setelah dibayar penuh, status faktur menjadi <strong>Lunas</strong>.',
+                'Setelah dibayar penuh, status faktur menjadi <strong>Lunas</strong>. Sisa di bawah Rp 1 — pecahan sen dari pembulatan pajak per baris — sudah dihitung lunas, karena memang tidak bisa ditransfer. Sisa tepat Rp 1 ke atas tetap <strong>Sebagian</strong>.',
             ],
         ],
         [
@@ -259,7 +259,7 @@ return [
             ],
             'periksa' => [
                 'Faktur mencantumkan seluruh surat jalan yang ditagihnya.',
-                'Pada tipe Jasa muncul baris <strong>PPh 23</strong> dan <strong>Dibayar Customer</strong> yang lebih kecil dari total.',
+                'Pada tipe Jasa muncul baris <strong>PPh 23</strong> dan <strong>Dibayar Customer</strong> yang lebih kecil dari total. Faktur menjadi <strong>Lunas</strong> begitu jumlah Dibayar Customer itu diterima — PPh 23 disetorkan customer sendiri, jadi tidak ditunggu.',
                 'Surat jalan yang sudah ditagih hilang dari daftar pilihan — tidak bisa tertagih dua kali.',
                 'Tombol <strong>Ubah Nomor</strong> hilang begitu pembayaran pertama dicatat. Sejak saat itu nomornya sudah disebut di bukti transfer dan pembukuan customer, jadi mengubahnya berarti memutus jejak yang dipegang dua belah pihak.',
             ],

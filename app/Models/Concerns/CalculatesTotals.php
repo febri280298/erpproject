@@ -39,4 +39,30 @@ trait CalculatesTotals
     {
         return round((float) $this->total - (float) ($this->paid_amount ?? 0), 2);
     }
+
+    /**
+     * Sisa serupiah ke bawah yang tidak mungkin dibayar siapa pun.
+     *
+     * Pajak dihitung per baris lalu dibulatkan dua desimal, jadi total dokumen
+     * hampir selalu membawa pecahan sen, sementara pembayaran diketik dalam
+     * rupiah bulat. Yang tertinggal Rp 0,01 sampai Rp 0,99 — tidak bisa
+     * ditransfer, tidak bisa ditagih, tetapi cukup untuk menahan faktur di
+     * status "Sebagian" selamanya.
+     */
+    public const SISA_DIABAIKAN = 1.0;
+
+    /**
+     * Lunas bila sisa tagihannya tidak berarti lagi.
+     *
+     * Sengaja bertumpu pada outstandingAmount() — angka yang sama persis
+     * dengan yang tercetak di kolom Sisa — bukan menghitung ulang dari total.
+     * Dulu keduanya dihitung terpisah dan ikut berbeda: kolom Sisa memotong
+     * PPh 23 serta nota kredit, pemeriksa status tidak, sehingga faktur yang
+     * sudah lunas tetap tampil "Sebagian" di samping tulisan "Rp 0". Satu
+     * sumber angka berarti layar dan status tidak bisa lagi berselisih.
+     */
+    public function lunas(): bool
+    {
+        return $this->outstandingAmount() < self::SISA_DIABAIKAN;
+    }
 }
