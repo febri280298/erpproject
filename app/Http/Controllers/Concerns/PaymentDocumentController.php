@@ -107,7 +107,12 @@ abstract class PaymentDocumentController extends Controller
                         throw new RuntimeException('Faktur yang dipilih tidak lagi terbuka.');
                     }
 
-                    if ($amount > $invoice->outstandingAmount() + 0.009) {
+                    // Lebih bayar di bawah serupiah diterima. Layar membulatkan sisa ke
+                    // rupiah penuh, jadi sisa Rp 1.000.000,60 tampil "Rp 1.000.001" dan
+                    // itulah yang diketik orang. Menolaknya dengan pesan yang menyebut
+                    // angka yang sama persis hanya membingungkan; kelebihan Rp 0,40-nya
+                    // dibaca nol oleh outstandingAmount().
+                    if ($amount >= $invoice->outstandingAmount() + $invoice::SISA_DIABAIKAN) {
                         throw new RuntimeException(sprintf(
                             'Alokasi untuk faktur %s melebihi sisa tagihan (%s).',
                             $invoice->invoice_no,

@@ -79,7 +79,9 @@
                             <td class="text-num">{{ rupiah($invoice->paid_amount) }}</td>
                             <td class="text-num fw-bold">{{ rupiah($invoice->outstandingAmount()) }}</td>
                             <td>
-                                <input type="number" step="0.01" min="0" max="{{ $invoice->outstandingAmount() }}"
+                                {{-- Dibulatkan ke atas: batasnya harus menerima angka yang
+                                     tampil di kolom Sisa, bukan menolaknya karena sen. --}}
+                                <input type="number" step="0.01" min="0" max="{{ ceil($invoice->outstandingAmount()) }}"
                                        name="allocations[{{ $index }}][amount]"
                                        class="form-control text-end"
                                        x-model.number="rows[{{ $index }}].amount">

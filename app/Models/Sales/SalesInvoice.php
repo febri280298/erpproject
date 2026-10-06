@@ -184,7 +184,7 @@ class SalesInvoice extends Model
      */
     public function outstandingAmount(): float
     {
-        return round($this->amountDue() - (float) $this->paid_amount - (float) $this->credit_amount, 2);
+        return $this->tanpaPecahanSen($this->amountDue() - (float) $this->paid_amount - (float) $this->credit_amount);
     }
 
     /** Status yang semestinya, dihitung tanpa menyimpan apa pun. */

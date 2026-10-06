@@ -37,7 +37,7 @@ trait CalculatesTotals
 
     public function outstandingAmount(): float
     {
-        return round((float) $this->total - (float) ($this->paid_amount ?? 0), 2);
+        return $this->tanpaPecahanSen((float) $this->total - (float) ($this->paid_amount ?? 0));
     }
 
     /**
@@ -52,17 +52,36 @@ trait CalculatesTotals
     public const SISA_DIABAIKAN = 1.0;
 
     /**
-     * Lunas bila sisa tagihannya tidak berarti lagi.
+     * Sisa yang lebih kecil dari satu rupiah, kurang maupun lebih, dibaca nol.
      *
-     * Sengaja bertumpu pada outstandingAmount() — angka yang sama persis
-     * dengan yang tercetak di kolom Sisa — bukan menghitung ulang dari total.
-     * Dulu keduanya dihitung terpisah dan ikut berbeda: kolom Sisa memotong
-     * PPh 23 serta nota kredit, pemeriksa status tidak, sehingga faktur yang
-     * sudah lunas tetap tampil "Sebagian" di samping tulisan "Rp 0". Satu
-     * sumber angka berarti layar dan status tidak bisa lagi berselisih.
+     * Ini satu-satunya tempat aturan itu diterapkan. Status lunas, warna kolom
+     * Sisa, laporan umur piutang, saldo mitra, batas alokasi pembayaran, dan
+     * cetakan faktur semuanya membaca sisa lewat outstandingAmount(), jadi
+     * tidak ada lagi yang menilai Rp 0,44 sebagai utang sementara yang lain
+     * menilainya lunas.
+     *
+     * Sebelumnya aturan ini hanya dipakai pemeriksa status. Faktur berubah
+     * Lunas, tetapi kolom Sisa masih membandingkan "> 0" terhadap angka mentah
+     * dan menampilkan "Rp 0" berwarna merah di sebelahnya.
+     */
+    protected function tanpaPecahanSen(float $sisa): float
+    {
+        $sisa = round($sisa, 2);
+
+        return abs($sisa) < self::SISA_DIABAIKAN ? 0.0 : $sisa;
+    }
+
+    /**
+     * Lunas bila sisa tagihannya habis.
+     *
+     * Sengaja bertumpu pada outstandingAmount(), angka yang sama persis dengan
+     * yang tercetak di kolom Sisa, bukan menghitung ulang dari total. Dulu
+     * keduanya dihitung terpisah dan berbeda: kolom Sisa memotong PPh 23 serta
+     * nota kredit, pemeriksa status tidak, sehingga faktur yang sudah lunas
+     * tetap tampil "Sebagian".
      */
     public function lunas(): bool
     {
-        return $this->outstandingAmount() < self::SISA_DIABAIKAN;
+        return $this->outstandingAmount() <= 0;
     }
 }
